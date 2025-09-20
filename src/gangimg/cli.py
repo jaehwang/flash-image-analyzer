@@ -1,10 +1,10 @@
-"""Command-line interface for v-mount gang image analyzer."""
+"""Command-line interface for gangimg gang image analyzer."""
 
 import argparse
 import sys
 from pathlib import Path
 
-from .core.exceptions import VmountError
+from .core.exceptions import GangimgError
 from .core.models import AnalysisResult
 from .platforms.qualcomm import QualcommAnalyzer
 from .utils.formatting import format_output
@@ -13,7 +13,7 @@ from .utils.formatting import format_output
 def create_parser() -> argparse.ArgumentParser:
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
-        description="Analyze embedded system gang images", prog="vmount"
+        description="Analyze embedded system gang images", prog="gangimg"
     )
 
     parser.add_argument("image", help="Gang image file to analyze")
@@ -60,7 +60,7 @@ def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool) -> Q
         if platform == "qualcomm":
             return QualcommAnalyzer(image_path, skip_fs_analysis)
         else:
-            raise VmountError(f"Platform '{platform}' not yet implemented")
+            raise GangimgError(f"Platform '{platform}' not yet implemented")
 
     # Auto-detect platform
     try:
@@ -197,7 +197,7 @@ def main() -> None:
         if result.validation_errors:
             sys.exit(1)
 
-    except VmountError as e:
+    except GangimgError as e:
         print(f"Error: {e}")
         sys.exit(1)
     except KeyboardInterrupt:

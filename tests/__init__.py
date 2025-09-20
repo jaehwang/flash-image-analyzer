@@ -1,1 +1,1 @@
-"""Test package for vmount."""
+"""Test package for gangimg."""

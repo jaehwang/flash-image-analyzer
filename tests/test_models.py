@@ -1,6 +1,6 @@
 """Tests for core models."""
 
-from vmount.core.models import ImageType, FilesystemInfo, PartitionInfo, AnalysisResult
+from gangimg.core.models import ImageType, FilesystemInfo, PartitionInfo, AnalysisResult
 
 
 class TestModels:

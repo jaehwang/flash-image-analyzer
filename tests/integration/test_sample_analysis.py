@@ -3,7 +3,7 @@
 import os
 import tempfile
 import pytest
-from vmount.platforms.qualcomm import QualcommAnalyzer
+from gangimg.platforms.qualcomm import QualcommAnalyzer
 
 
 class TestSampleAnalysis:

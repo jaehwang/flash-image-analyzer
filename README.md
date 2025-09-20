@@ -211,41 +211,41 @@ pip install -e .
 
 ```bash
 # 도움말 확인
-uv run python -m vmount.cli --help
+uv run python -m gangimg.cli --help
 
 # gang image 분석
-uv run python -m vmount.cli firmware.bin
+uv run python -m gangimg.cli firmware.bin
 
 # 상세 정보와 함께 분석
-uv run python -m vmount.cli -v firmware.bin
+uv run python -m gangimg.cli -v firmware.bin
 ```
 
 #### 설치 후 실행
 
 ```bash
 # 패키지 설치 후
-vmount --help
-vmount firmware.bin
-vmount -v firmware.bin
+gangimg --help
+gangimg firmware.bin
+gangimg -v firmware.bin
 ```
 
 #### 고급 옵션
 
 ```bash
 # 파일시스템 분석 제외 (빠른 처리)
-uv run python -m vmount.cli --no-fs-analysis firmware.bin
+uv run python -m gangimg.cli --no-fs-analysis firmware.bin
 
 # 파일시스템이 있는 파티션만 표시
-uv run python -m vmount.cli --fs-only firmware.bin
+uv run python -m gangimg.cli --fs-only firmware.bin
 
 # 특정 파티션 추출
-uv run python -m vmount.cli --extract system_0:extracted_system.bin firmware.bin
+uv run python -m gangimg.cli --extract system_0:extracted_system.bin firmware.bin
 
 # JSON 출력 형식
-uv run python -m vmount.cli --output-format json firmware.bin
+uv run python -m gangimg.cli --output-format json firmware.bin
 
 # 플랫폼 지정
-uv run python -m vmount.cli --platform qualcomm firmware.bin
+uv run python -m gangimg.cli --platform qualcomm firmware.bin
 ```
 
 #### 테스트용 샘플 생성 및 분석
@@ -257,7 +257,7 @@ uv run python -m vmount.cli --platform qualcomm firmware.bin
 uv run python scripts/create_simple_sample.py
 
 # 2. 생성된 샘플 분석
-uv run python -m vmount.cli samples/simple_test.bin
+uv run python -m gangimg.cli samples/simple_test.bin
 
 # 또는 Makefile로 분석 (샘플 생성 후)
 make example

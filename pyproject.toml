@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "vmount"
+name = "gangimg"
 version = "0.1.0"
 description = "Gang image analysis tool for embedded systems"
 readme = "README.md"
 requires-python = ">=3.8.1"
 license = {text = "MIT"}
 authors = [
-    {name = "V-Mount Development Team"}
+    {name = "Gang Image Analyzer Development Team"}
 ]
 keywords = ["embedded", "gang-image", "qualcomm", "broadcom", "mediatek", "marvell"]
 classifiers = [
@@ -40,11 +40,11 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/vmount/vmount"
-"Bug Tracker" = "https://github.com/vmount/vmount/issues"
+"Homepage" = "https://github.com/gangimg/gangimg"
+"Bug Tracker" = "https://github.com/gangimg/gangimg/issues"
 
 [project.scripts]
-vmount = "vmount.cli:main"
+gangimg = "gangimg.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -73,10 +73,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=src/vmount --cov-report=term-missing --cov-report=html"
+addopts = "--cov=src/gangimg --cov-report=term-missing --cov-report=html"
 
 [tool.coverage.run]
-source = ["src/vmount"]
+source = ["src/gangimg"]
 omit = [
     "*/tests/*",
     "*/test_*",

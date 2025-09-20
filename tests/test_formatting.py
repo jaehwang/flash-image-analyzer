@@ -1,7 +1,7 @@
 """Tests for formatting utilities."""
 
-from vmount.utils.formatting import format_size
-from vmount.core.models import AnalysisResult, PartitionInfo, ImageType
+from gangimg.utils.formatting import format_size
+from gangimg.core.models import AnalysisResult, PartitionInfo, ImageType
 
 
 class TestFormatting:

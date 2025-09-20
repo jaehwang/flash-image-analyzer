@@ -2,8 +2,8 @@
 
 import tempfile
 import os
-from vmount.utils.validation import validate_gang_image
-from vmount.core.models import PartitionInfo, ImageType
+from gangimg.utils.validation import validate_gang_image
+from gangimg.core.models import PartitionInfo, ImageType
 
 
 class TestValidation:

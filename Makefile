@@ -18,7 +18,7 @@ test: ## Run tests with pytest
 	uv run pytest
 
 test-cov: ## Run tests with coverage
-	uv run pytest --cov=src/vmount --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=src/gangimg --cov-report=term-missing --cov-report=html
 
 lint: ## Run linting checks
 	uv run flake8 src tests
@@ -48,10 +48,10 @@ docs: ## Build documentation
 	cd docs && make html
 
 example: ## Run example analysis
-	uv run python -m vmount.cli samples/simple_test.bin
+	uv run python -m gangimg.cli samples/simple_test.bin
 
 example-help: ## Show CLI help
-	uv run python -m vmount.cli --help
+	uv run python -m gangimg.cli --help
 
 install-hooks: ## Install pre-commit hooks
 	uv run pre-commit install
