@@ -1,6 +1,7 @@
 """Formatting utilities for output display."""
 
 from typing import List
+
 from ..core.models import AnalysisResult, PartitionInfo
 
 
@@ -39,7 +40,9 @@ def format_output(result: AnalysisResult, verbose: bool = False, fs_only: bool =
     # Partition table
     output.append(f"\nFound {len(partitions)} partitions:")
     output.append("-" * 120)
-    output.append(f"{'Name':<15} {'Type':<10} {'Offset':<12} {'Size':<12} {'Load Addr':<12} {'FS Type':<10} {'FS Size':<12} {'Used':<10}")
+    output.append(
+        f"{'Name':<15} {'Type':<10} {'Offset':<12} {'Size':<12} {'Load Addr':<12} {'FS Type':<10} {'FS Size':<12} {'Used':<10}"
+    )
     output.append("-" * 120)
 
     for partition in partitions:
@@ -54,9 +57,11 @@ def format_output(result: AnalysisResult, verbose: bool = False, fs_only: bool =
             fs_size_str = format_size(fs.fs_size)
             used_str = format_size(fs.used_size)
 
-        output.append(f"{partition.name:<15} {partition.image_type.value:<10} "
-                     f"0x{partition.offset:08x}   {format_size(partition.size):<10}   "
-                     f"0x{partition.load_addr:08x}   {fs_type:<10} {fs_size_str:<10} {used_str:<10}")
+        output.append(
+            f"{partition.name:<15} {partition.image_type.value:<10} "
+            f"0x{partition.offset:08x}   {format_size(partition.size):<10}   "
+            f"0x{partition.load_addr:08x}   {fs_type:<10} {fs_size_str:<10} {used_str:<10}"
+        )
 
     output.append("-" * 120)
     output.append(f"Total partition size: {format_size(result.total_partition_size)}")
@@ -70,19 +75,25 @@ def format_output(result: AnalysisResult, verbose: bool = False, fs_only: bool =
     # Detailed filesystem analysis
     fs_partitions = [p for p in partitions if p.filesystem]
     if fs_partitions:
-        output.append(f"\nFilesystem Details:")
+        output.append("\nFilesystem Details:")
         output.append("-" * 100)
-        output.append(f"{'Partition':<15} {'FS Type':<10} {'Total':<12} {'Used':<12} {'Free':<12} {'Usage%':<8} {'Block Size':<10}")
+        output.append(
+            f"{'Partition':<15} {'FS Type':<10} {'Total':<12} {'Used':<12} {'Free':<12} {'Usage%':<8} {'Block Size':<10}"
+        )
         output.append("-" * 100)
 
         for partition in fs_partitions:
+            if not partition.filesystem:
+                continue
             fs = partition.filesystem
             usage_pct = (fs.used_size / fs.fs_size * 100) if fs.fs_size > 0 else 0
 
-            output.append(f"{partition.name:<15} {fs.fs_type:<10} "
-                         f"{format_size(fs.fs_size):<10} {format_size(fs.used_size):<10} "
-                         f"{format_size(fs.free_size):<10} {usage_pct:>6.1f}%   "
-                         f"{format_size(fs.block_size):<10}")
+            output.append(
+                f"{partition.name:<15} {fs.fs_type:<10} "
+                f"{format_size(fs.fs_size):<10} {format_size(fs.used_size):<10} "
+                f"{format_size(fs.free_size):<10} {usage_pct:>6.1f}%   "
+                f"{format_size(fs.block_size):<10}"
+            )
 
         output.append("-" * 100)
 

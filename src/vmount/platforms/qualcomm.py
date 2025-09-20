@@ -1,20 +1,19 @@
 """Qualcomm platform-specific gang image analyzer."""
 
 import struct
-import zlib
 from dataclasses import dataclass
 from typing import BinaryIO, Optional
 
-from ..core.analyzer import GangImageAnalyzer
-from ..core.models import AnalysisResult, PartitionInfo, FilesystemInfo, ImageType
-from ..core.exceptions import AnalysisError, UnsupportedFormatError
 from ..analyzers.filesystem import FilesystemAnalyzer
-from ..utils.formatting import format_size
+from ..core.analyzer import GangImageAnalyzer
+from ..core.exceptions import AnalysisError, UnsupportedFormatError
+from ..core.models import AnalysisResult, ImageType, PartitionInfo
 
 
 @dataclass
 class MBNHeader:
     """Qualcomm MBN Header structure."""
+
     image_id: int
     header_vsn_num: int
     image_src: int
@@ -37,10 +36,10 @@ class QualcommAnalyzer(GangImageAnalyzer):
 
         # Common Qualcomm gang image magic numbers
         known_magics = [
-            b'\x7F\x45\x4C\x46',  # ELF
-            b'GANG',              # Custom gang header
-            b'QCOM',              # Qualcomm header
-            b'\x00\x00\x00\x00'  # Some images start with zeros
+            b"\x7f\x45\x4c\x46",  # ELF
+            b"GANG",  # Custom gang header
+            b"QCOM",  # Qualcomm header
+            b"\x00\x00\x00\x00",  # Some images start with zeros
         ]
 
         return magic in known_magics
@@ -52,7 +51,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
         validation_errors = []
 
         try:
-            with open(self.filename, 'rb') as f:
+            with open(self.filename, "rb") as f:
                 if not self.can_handle(f):
                     raise UnsupportedFormatError("Not a recognized Qualcomm gang image format")
 
@@ -66,10 +65,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
 
             # Calculate totals
             total_partition_size = sum(p.size for p in partitions)
-            total_filesystem_used = sum(
-                p.filesystem.used_size for p in partitions
-                if p.filesystem
-            )
+            total_filesystem_used = sum(p.filesystem.used_size for p in partitions if p.filesystem)
 
             # Validate partitions
             validation_errors.extend(self._validate_partitions(partitions))
@@ -84,7 +80,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
             total_partition_size=total_partition_size,
             total_filesystem_used=total_filesystem_used,
             validation_errors=validation_errors,
-            warnings=warnings
+            warnings=warnings,
         )
 
     def _detect_gang_format(self, f: BinaryIO) -> bool:
@@ -94,10 +90,10 @@ class QualcommAnalyzer(GangImageAnalyzer):
 
         # Common Qualcomm gang image magic numbers
         known_magics = [
-            b'\x7F\x45\x4C\x46',  # ELF
-            b'GANG',              # Custom gang header
-            b'QCOM',              # Qualcomm header
-            b'\x00\x00\x00\x00'  # Some images start with zeros
+            b"\x7f\x45\x4c\x46",  # ELF
+            b"GANG",  # Custom gang header
+            b"QCOM",  # Qualcomm header
+            b"\x00\x00\x00\x00",  # Some images start with zeros
         ]
 
         return magic in known_magics
@@ -118,13 +114,13 @@ class QualcommAnalyzer(GangImageAnalyzer):
         f.seek(0)
         elf_header = f.read(52)  # ELF header size
 
-        if len(elf_header) < 52 or elf_header[:4] != b'\x7F\x45\x4C\x46':
+        if len(elf_header) < 52 or elf_header[:4] != b"\x7f\x45\x4c\x46":
             return False
 
         # Parse ELF header
-        e_phoff = struct.unpack('<I', elf_header[28:32])[0]  # Program header offset
-        e_phentsize = struct.unpack('<H', elf_header[42:44])[0]  # Program header entry size
-        e_phnum = struct.unpack('<H', elf_header[44:46])[0]  # Number of program headers
+        e_phoff = struct.unpack("<I", elf_header[28:32])[0]  # Program header offset
+        e_phentsize = struct.unpack("<H", elf_header[42:44])[0]  # Program header entry size
+        e_phnum = struct.unpack("<H", elf_header[44:46])[0]  # Number of program headers
 
         partitions = []
 
@@ -133,7 +129,9 @@ class QualcommAnalyzer(GangImageAnalyzer):
         for i in range(e_phnum):
             ph = f.read(e_phentsize)
             if len(ph) >= 32:
-                p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz = struct.unpack('<IIIIII', ph[:24])
+                p_type, p_offset, p_vaddr, p_paddr, p_filesz, p_memsz = struct.unpack(
+                    "<IIIIII", ph[:24]
+                )
 
                 if p_type == 1 and p_filesz > 0:  # PT_LOAD
                     partition = PartitionInfo(
@@ -141,13 +139,15 @@ class QualcommAnalyzer(GangImageAnalyzer):
                         offset=p_offset,
                         size=p_filesz,
                         image_type=ImageType.UNKNOWN,
-                        load_addr=p_paddr
+                        load_addr=p_paddr,
                     )
 
                     # Analyze filesystem if this looks like a filesystem partition
                     if not self.skip_fs_analysis and partition.size > 1024 * 1024:
                         fs_analyzer = FilesystemAnalyzer()
-                        partition.filesystem = fs_analyzer.analyze(f, partition.offset, partition.size)
+                        partition.filesystem = fs_analyzer.analyze(
+                            f, partition.offset, partition.size
+                        )
 
                     partitions.append(partition)
 
@@ -185,7 +185,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
                     size=mbn_header.image_size,
                     image_type=image_type,
                     load_addr=mbn_header.image_dest_ptr,
-                    entry_point=mbn_header.image_dest_ptr
+                    entry_point=mbn_header.image_dest_ptr,
                 )
 
                 # Analyze filesystem if this looks like a filesystem partition
@@ -212,7 +212,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
             return None
 
         try:
-            fields = struct.unpack('<10I', data)
+            fields = struct.unpack("<10I", data)
             return MBNHeader(
                 image_id=fields[0],
                 header_vsn_num=fields[1],
@@ -223,9 +223,9 @@ class QualcommAnalyzer(GangImageAnalyzer):
                 signature_ptr=fields[6],
                 signature_size=fields[7],
                 cert_chain_ptr=fields[8],
-                cert_chain_size=fields[9]
+                cert_chain_size=fields[9],
             )
-        except:
+        except struct.error:
             return None
 
     def _validate_mbn_header(self, header: MBNHeader, offset: int) -> bool:
@@ -262,9 +262,9 @@ class QualcommAnalyzer(GangImageAnalyzer):
             content = f.read(min(512, header.image_size - 40))
             f.seek(current_pos)
 
-            if b'ANDROID!' in content:
+            if b"ANDROID!" in content:
                 return ImageType.BOOT
-            elif b'Linux' in content or b'vmlinuz' in content:
+            elif b"Linux" in content or b"vmlinuz" in content:
                 return ImageType.BOOT
             else:
                 return ImageType.UNKNOWN
@@ -294,6 +294,8 @@ class QualcommAnalyzer(GangImageAnalyzer):
             current_end = current.offset + current.size
             if current_end > next_part.offset:
                 overlap_size = current_end - next_part.offset
-                errors.append(f"{current.name} overlaps with {next_part.name} by {overlap_size} bytes")
+                errors.append(
+                    f"{current.name} overlaps with {next_part.name} by {overlap_size} bytes"
+                )
 
         return errors

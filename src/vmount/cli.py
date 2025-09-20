@@ -4,81 +4,67 @@ import argparse
 import sys
 from pathlib import Path
 
+from .core.exceptions import VmountError
+from .core.models import AnalysisResult
 from .platforms.qualcomm import QualcommAnalyzer
 from .utils.formatting import format_output
-from .core.exceptions import VmountError
 
 
 def create_parser() -> argparse.ArgumentParser:
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
-        description='Analyze embedded system gang images',
-        prog='vmount'
+        description="Analyze embedded system gang images", prog="vmount"
+    )
+
+    parser.add_argument("image", help="Gang image file to analyze")
+
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
+    parser.add_argument(
+        "--extract", help="Extract partition to file (format: partition_name:output_file)"
     )
 
     parser.add_argument(
-        'image',
-        help='Gang image file to analyze'
+        "--fs-only", action="store_true", help="Show only partitions with filesystems"
     )
 
     parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Verbose output'
+        "--no-fs-analysis",
+        action="store_true",
+        help="Skip filesystem analysis for faster processing",
     )
 
     parser.add_argument(
-        '--extract',
-        help='Extract partition to file (format: partition_name:output_file)'
+        "--platform",
+        choices=["qualcomm", "broadcom", "mediatek", "marvell", "auto"],
+        default="auto",
+        help="Force specific platform analyzer (default: auto-detect)",
     )
 
     parser.add_argument(
-        '--fs-only',
-        action='store_true',
-        help='Show only partitions with filesystems'
+        "--output-format",
+        choices=["text", "json", "csv"],
+        default="text",
+        help="Output format for results",
     )
 
-    parser.add_argument(
-        '--no-fs-analysis',
-        action='store_true',
-        help='Skip filesystem analysis for faster processing'
-    )
-
-    parser.add_argument(
-        '--platform',
-        choices=['qualcomm', 'broadcom', 'mediatek', 'marvell', 'auto'],
-        default='auto',
-        help='Force specific platform analyzer (default: auto-detect)'
-    )
-
-    parser.add_argument(
-        '--output-format',
-        choices=['text', 'json', 'csv'],
-        default='text',
-        help='Output format for results'
-    )
-
-    parser.add_argument(
-        '--version',
-        action='version',
-        version='%(prog)s 0.1.0'
-    )
+    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 
     return parser
 
 
-def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool):
+def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool) -> QualcommAnalyzer:
     """Select appropriate analyzer for the image."""
-    if platform != 'auto':
+    if platform != "auto":
         # Force specific platform
-        if platform == 'qualcomm':
+        if platform == "qualcomm":
             return QualcommAnalyzer(image_path, skip_fs_analysis)
         else:
             raise VmountError(f"Platform '{platform}' not yet implemented")
 
     # Auto-detect platform
     try:
-        with open(image_path, 'rb') as f:
+        with open(image_path, "rb") as f:
             # Try Qualcomm first
             analyzer = QualcommAnalyzer(image_path, skip_fs_analysis)
             if analyzer.can_handle(f):
@@ -90,10 +76,10 @@ def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool):
     return QualcommAnalyzer(image_path, skip_fs_analysis)
 
 
-def handle_extraction(analyzer, extract_spec: str) -> None:
+def handle_extraction(analyzer: QualcommAnalyzer, extract_spec: str) -> None:
     """Handle partition extraction."""
     try:
-        partition_name, output_file = extract_spec.split(':', 1)
+        partition_name, output_file = extract_spec.split(":", 1)
         analyzer.extract_partition(partition_name, output_file)
         print(f"Extracted {partition_name} to {output_file}")
     except ValueError:
@@ -104,40 +90,51 @@ def handle_extraction(analyzer, extract_spec: str) -> None:
         sys.exit(1)
 
 
-def output_results(result, output_format: str, verbose: bool, fs_only: bool) -> None:
+def output_results(
+    result: AnalysisResult, output_format: str, verbose: bool, fs_only: bool
+) -> None:
     """Output analysis results in the specified format."""
-    if output_format == 'text':
+    if output_format == "text":
         print(format_output(result, verbose, fs_only))
-    elif output_format == 'json':
+    elif output_format == "json":
         import json
+
         # Convert result to dict for JSON serialization
         data = {
-            'filename': result.filename,
-            'file_size': result.file_size,
-            'partitions': [
+            "filename": result.filename,
+            "file_size": result.file_size,
+            "partitions": [
                 {
-                    'name': p.name,
-                    'offset': p.offset,
-                    'size': p.size,
-                    'image_type': p.image_type.value,
-                    'load_addr': p.load_addr,
-                    'filesystem': {
-                        'fs_type': p.filesystem.fs_type,
-                        'fs_size': p.filesystem.fs_size,
-                        'used_size': p.filesystem.used_size,
-                        'free_size': p.filesystem.free_size,
-                        'block_size': p.filesystem.block_size
-                    } if p.filesystem else None
+                    "name": p.name,
+                    "offset": p.offset,
+                    "size": p.size,
+                    "image_type": p.image_type.value,
+                    "load_addr": p.load_addr,
+                    "filesystem": (
+                        {
+                            "fs_type": p.filesystem.fs_type,
+                            "fs_size": p.filesystem.fs_size,
+                            "used_size": p.filesystem.used_size,
+                            "free_size": p.filesystem.free_size,
+                            "block_size": p.filesystem.block_size,
+                        }
+                        if p.filesystem
+                        else None
+                    ),
                 }
-                for p in (result.partitions if not fs_only else [p for p in result.partitions if p.filesystem])
+                for p in (
+                    result.partitions
+                    if not fs_only
+                    else [p for p in result.partitions if p.filesystem]
+                )
             ],
-            'total_partition_size': result.total_partition_size,
-            'total_filesystem_used': result.total_filesystem_used,
-            'validation_errors': result.validation_errors,
-            'warnings': result.warnings
+            "total_partition_size": result.total_partition_size,
+            "total_filesystem_used": result.total_filesystem_used,
+            "validation_errors": result.validation_errors,
+            "warnings": result.warnings,
         }
         print(json.dumps(data, indent=2))
-    elif output_format == 'csv':
+    elif output_format == "csv":
         import csv
         import io
 
@@ -145,26 +142,32 @@ def output_results(result, output_format: str, verbose: bool, fs_only: bool) -> 
         writer = csv.writer(output)
 
         # Header
-        writer.writerow(['Name', 'Type', 'Offset', 'Size', 'Load_Addr', 'FS_Type', 'FS_Size', 'Used_Size'])
+        writer.writerow(
+            ["Name", "Type", "Offset", "Size", "Load_Addr", "FS_Type", "FS_Size", "Used_Size"]
+        )
 
         # Data rows
-        partitions = result.partitions if not fs_only else [p for p in result.partitions if p.filesystem]
+        partitions = (
+            result.partitions if not fs_only else [p for p in result.partitions if p.filesystem]
+        )
         for p in partitions:
-            writer.writerow([
-                p.name,
-                p.image_type.value,
-                f"0x{p.offset:08x}",
-                p.size,
-                f"0x{p.load_addr:08x}",
-                p.filesystem.fs_type if p.filesystem else 'N/A',
-                p.filesystem.fs_size if p.filesystem else 'N/A',
-                p.filesystem.used_size if p.filesystem else 'N/A'
-            ])
+            writer.writerow(
+                [
+                    p.name,
+                    p.image_type.value,
+                    f"0x{p.offset:08x}",
+                    p.size,
+                    f"0x{p.load_addr:08x}",
+                    p.filesystem.fs_type if p.filesystem else "N/A",
+                    p.filesystem.fs_size if p.filesystem else "N/A",
+                    p.filesystem.used_size if p.filesystem else "N/A",
+                ]
+            )
 
         print(output.getvalue().strip())
 
 
-def main():
+def main() -> None:
     """Main CLI entry point."""
     parser = create_parser()
     args = parser.parse_args()
@@ -204,9 +207,10 @@ def main():
         print(f"Unexpected error: {e}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

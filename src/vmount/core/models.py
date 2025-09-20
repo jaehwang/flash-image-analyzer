@@ -7,6 +7,7 @@ from typing import Optional
 
 class ImageType(Enum):
     """Types of images found in gang images."""
+
     SBL = "sbl"
     TZ = "tz"
     RPM = "rpm"
@@ -21,6 +22,7 @@ class ImageType(Enum):
 @dataclass
 class FilesystemInfo:
     """Information about a filesystem found in a partition."""
+
     fs_type: str
     fs_size: int
     used_size: int
@@ -33,6 +35,7 @@ class FilesystemInfo:
 @dataclass
 class PartitionInfo:
     """Information about a partition in a gang image."""
+
     name: str
     offset: int
     size: int
@@ -46,6 +49,7 @@ class PartitionInfo:
 @dataclass
 class AnalysisResult:
     """Complete analysis result for a gang image."""
+
     filename: str
     file_size: int
     partitions: list[PartitionInfo]

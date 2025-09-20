@@ -2,7 +2,7 @@
 
 import hashlib
 import zlib
-from typing import BinaryIO
+from typing import BinaryIO, Union
 
 from ..core.models import PartitionInfo
 
@@ -12,7 +12,7 @@ def validate_gang_image(filename: str) -> tuple[bool, list[str]]:
     errors = []
 
     try:
-        with open(filename, 'rb') as f:
+        with open(filename, "rb") as f:
             file_size = f.seek(0, 2)  # Get file size
 
             # Basic file size checks
@@ -33,7 +33,7 @@ def validate_gang_image(filename: str) -> tuple[bool, list[str]]:
     return len(errors) == 0, errors
 
 
-def calculate_checksum(f: BinaryIO, offset: int, size: int, algorithm: str = "crc32") -> int:
+def calculate_checksum(f: BinaryIO, offset: int, size: int, algorithm: str = "crc32") -> Union[int, str]:
     """Calculate checksum for a section of the file."""
     current_pos = f.tell()
     f.seek(offset)
@@ -41,7 +41,7 @@ def calculate_checksum(f: BinaryIO, offset: int, size: int, algorithm: str = "cr
     f.seek(current_pos)
 
     if algorithm == "crc32":
-        return zlib.crc32(data) & 0xFFFFFFFF
+        return int(zlib.crc32(data) & 0xFFFFFFFF)
     elif algorithm == "md5":
         return hashlib.md5(data).hexdigest()
     elif algorithm == "sha256":

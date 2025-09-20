@@ -4,8 +4,8 @@ import os
 from abc import ABC, abstractmethod
 from typing import BinaryIO
 
-from .models import AnalysisResult, PartitionInfo
 from .exceptions import AnalysisError
+from .models import AnalysisResult
 
 
 class GangImageAnalyzer(ABC):
@@ -43,16 +43,15 @@ class GangImageAnalyzer(ABC):
         if not partition:
             available = [p.name for p in result.partitions]
             raise AnalysisError(
-                f"Partition '{partition_name}' not found. "
-                f"Available: {', '.join(available)}"
+                f"Partition '{partition_name}' not found. " f"Available: {', '.join(available)}"
             )
 
         try:
-            with open(self.filename, 'rb') as infile:
+            with open(self.filename, "rb") as infile:
                 infile.seek(partition.offset)
                 data = infile.read(partition.size)
 
-            with open(output_file, 'wb') as outfile:
+            with open(output_file, "wb") as outfile:
                 outfile.write(data)
 
         except Exception as e:
