@@ -248,6 +248,21 @@ uv run python -m vmount.cli --output-format json firmware.bin
 uv run python -m vmount.cli --platform qualcomm firmware.bin
 ```
 
+#### 테스트용 샘플 생성 및 분석
+
+테스트를 위한 샘플 gang image를 생성하고 분석할 수 있습니다:
+
+```bash
+# 1. 먼저 테스트 샘플 생성 (1KB ELF ARM 바이너리)
+uv run python samples/create_simple_sample.py
+
+# 2. 생성된 샘플 분석
+uv run python -m vmount.cli samples/simple_test.bin
+
+# 또는 Makefile로 분석 (샘플 생성 후)
+make example
+```
+
 ### 출력 예시
 
 #### 기본 파티션 정보
