@@ -145,5 +145,3 @@ htmlcov/
 *.bin
 *.img
 *.raw
-examples/
-test_images/

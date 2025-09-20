@@ -14,10 +14,6 @@ install-dev: ## Install package with development dependencies (uv)
 	uv sync
 	uv pip install -e ".[dev]"
 
-install-dev-pip: ## Install package with development dependencies (pip fallback)
-	pip install -e ".[dev]"
-	pip install -r requirements-dev.txt
-
 test: ## Run tests with pytest
 	uv run pytest
 
@@ -63,8 +59,5 @@ install-hooks: ## Install pre-commit hooks
 # Development workflow
 dev-setup: install-dev install-hooks ## Set up development environment
 	@echo "Development environment ready!"
-
-dev-setup-pip: install-dev-pip install-hooks ## Set up development environment (pip fallback)
-	@echo "Development environment ready! (using pip)"
 
 check-all: format-check lint test ## Run all checks (format, lint, test)
