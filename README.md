@@ -254,7 +254,7 @@ uv run python -m vmount.cli --platform qualcomm firmware.bin
 
 ```bash
 # 1. 먼저 테스트 샘플 생성 (1KB ELF ARM 바이너리)
-uv run python samples/create_simple_sample.py
+uv run python scripts/create_simple_sample.py
 
 # 2. 생성된 샘플 분석
 uv run python -m vmount.cli samples/simple_test.bin
