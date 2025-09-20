@@ -134,10 +134,10 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 현재 Qualcomm 플랫폼을 시작으로, 다음 순서로 지원을 확장할 예정입니다:
 
 1. **✅ Qualcomm** (현재 지원) - MBN 형식, TrustZone 구조
-2. **🔄 Broadcom** (다음 단계) - CFE, TRX 헤더 형식  
-3. **📋 MediaTek** (계획 중) - Preloader, Android 파티션
-4. **📋 Marvell** (계획 중) - U-Boot, 네트워크 프로세서
-5. **📋 기타 플랫폼** (요청 시) - 사용자 요구에 따라 추가
+2. **📋 Broadcom** - CFE, TRX 헤더 형식  
+3. **📋 MediaTek** - Preloader, Android 파티션
+4. **📋 Marvell** - U-Boot, 네트워크 프로세서
+5. **📋 기타 플랫폼** - 사용자 요구에 따라 추가
 
 ## Qualcomm Gang Image 분석 도구
 
