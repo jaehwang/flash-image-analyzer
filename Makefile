@@ -48,7 +48,7 @@ docs: ## Build documentation
 	cd docs && make html
 
 example: ## Run example analysis
-	uv run python -m vmount.cli examples/sample_gang_image.bin
+	uv run python -m vmount.cli samples/simple_test.bin
 
 example-help: ## Show CLI help
 	uv run python -m vmount.cli --help
