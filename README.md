@@ -189,9 +189,14 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 프로젝트 의존성 설치
 uv sync
+uv pip install -e ".[dev]"
+# 또는
+make install-dev
 
 # 개발 모드로 설치
 uv pip install -e .
+# 또는
+make install
 ```
 
 #### 전통적인 pip 설치

@@ -41,11 +41,9 @@ clean: ## Clean build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-build: ## Build package
-	uv run python -m build
-
-docs: ## Build documentation
-	cd docs && make html
+sample: ## create sample gang image
+	@[ -d samples ] || mkdir samples
+	uv run python scripts/create_simple_sample.py
 
 example: ## Run example analysis
 	uv run python -m gangimg.cli samples/simple_test.bin
