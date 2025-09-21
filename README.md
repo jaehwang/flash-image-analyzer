@@ -268,7 +268,7 @@ uv run python -m gangimg.cli --platform qualcomm firmware.bin
 uv run python scripts/create_simple_sample.py
 
 # 2. 생성된 gang image 분석
-uv run python -m gangimg.cli samples/simple_gang.img
+uv run python -m gangimg.cli samples/simple_gang.bin
 
 # 또는 Makefile로 분석 (샘플 생성 후)
 make example

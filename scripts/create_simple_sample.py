@@ -153,7 +153,7 @@ def create_gang_image() -> bytes:
 def main() -> None:
     gang_image = create_gang_image()
 
-    with open("samples/simple_gang.img", "wb") as f:
+    with open("samples/simple_gang.bin", "wb") as f:
         f.write(gang_image)
 
     print(f"Created gang image: {len(gang_image)} bytes")
