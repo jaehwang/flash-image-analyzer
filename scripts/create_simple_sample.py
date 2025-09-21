@@ -3,6 +3,7 @@
 
 import struct
 
+
 def create_mbn_partition(data: bytes, load_addr: int, image_id: int = 1) -> bytes:
     """Create MBN partition with header."""
     image_size = len(data) + 40  # MBN header size + data
@@ -10,16 +11,20 @@ def create_mbn_partition(data: bytes, load_addr: int, image_id: int = 1) -> byte
     # AI-NOTE: MBN (Multi-Boot Image) is Qualcomm's standard format for bootloader images
     # Each MBN has a 40-byte header followed by the actual binary data
     header = bytearray(40)
-    struct.pack_into('<I', header, 0, 0)           # AI-NOTE: image_id=0 for analyzer recognition (matches magic check)
-    struct.pack_into('<I', header, 4, 0x3)          # header_vsn_num
-    struct.pack_into('<I', header, 8, 0x0)          # image_src
-    struct.pack_into('<I', header, 12, load_addr)   # AI-NOTE: load address determines partition type (SBL, TZ, etc.)
-    struct.pack_into('<I', header, 16, image_size)  # image_size
-    struct.pack_into('<I', header, 20, len(data))   # code_size
-    struct.pack_into('<I', header, 24, 0x0)         # signature_ptr
-    struct.pack_into('<I', header, 28, 0x0)         # signature_size
-    struct.pack_into('<I', header, 32, 0x0)         # cert_chain_ptr
-    struct.pack_into('<I', header, 36, 0x0)         # cert_chain_size
+    struct.pack_into(
+        "<I", header, 0, 0
+    )  # AI-NOTE: image_id=0 for analyzer recognition (matches magic check)
+    struct.pack_into("<I", header, 4, 0x3)  # header_vsn_num
+    struct.pack_into("<I", header, 8, 0x0)  # image_src
+    struct.pack_into(
+        "<I", header, 12, load_addr
+    )  # AI-NOTE: load address determines partition type (SBL, TZ, etc.)
+    struct.pack_into("<I", header, 16, image_size)  # image_size
+    struct.pack_into("<I", header, 20, len(data))  # code_size
+    struct.pack_into("<I", header, 24, 0x0)  # signature_ptr
+    struct.pack_into("<I", header, 28, 0x0)  # signature_size
+    struct.pack_into("<I", header, 32, 0x0)  # cert_chain_ptr
+    struct.pack_into("<I", header, 36, 0x0)  # cert_chain_size
 
     # Combine header + data
     result = bytearray()
@@ -28,12 +33,13 @@ def create_mbn_partition(data: bytes, load_addr: int, image_id: int = 1) -> byte
 
     return bytes(result)
 
-def create_sbl_partition():
+
+def create_sbl_partition() -> bytes:
     """Create SBL (Secondary Boot Loader) partition."""
     # AI-NOTE: SBL is the first bootloader that runs after Boot ROM
     # It initializes basic hardware like DDR, clocks, and loads the next stage
     code = bytearray()
-    code.extend(b'SBL_CODE' * 100)  # Fake SBL code
+    code.extend(b"SBL_CODE" * 100)  # Fake SBL code
 
     # Pad to reasonable size
     while len(code) < 4096:
@@ -42,12 +48,13 @@ def create_sbl_partition():
     # AI-NOTE: 0x40000000 is the typical SBL load address in Qualcomm memory map
     return create_mbn_partition(bytes(code), 0x40000000, 1)
 
-def create_appsbl_partition():
+
+def create_appsbl_partition() -> bytes:
     """Create APPSBL partition with fake boot code."""
     # AI-NOTE: APPSBL (Application SBL) is the second-stage bootloader
     # It typically loads the Linux kernel and handles advanced features
     code = bytearray()
-    code.extend(b'APPSBL' * 150)  # Fake APPSBL code
+    code.extend(b"APPSBL" * 150)  # Fake APPSBL code
 
     # Pad to reasonable size
     while len(code) < 2048:
@@ -56,34 +63,35 @@ def create_appsbl_partition():
     # AI-NOTE: 0x8F600000 is the typical APPSBL load address in Qualcomm memory map
     return create_mbn_partition(bytes(code), 0x8F600000, 2)
 
-def create_squashfs_rootfs():
+
+def create_squashfs_rootfs() -> bytes:
     """Create a simple SquashFS filesystem with README.md."""
     # AI-NOTE: SquashFS is a compressed read-only filesystem commonly used for rootfs
     # It's popular in embedded systems due to small size and fast boot times
     data = bytearray()
 
     # AI-NOTE: SquashFS magic number - "hsqs" for little endian, "sqsh" for big endian
-    data.extend(b'hsqs')  # Magic number
+    data.extend(b"hsqs")  # Magic number
 
     # AI-NOTE: SquashFS 4.0 superblock structure (simplified version for testing)
-    data.extend(struct.pack('<I', 1))         # inodes
-    data.extend(struct.pack('<I', 0))         # mkfs_time (low)
-    data.extend(struct.pack('<I', 131072))    # block_size
-    data.extend(struct.pack('<I', 1))         # fragments
-    data.extend(struct.pack('<H', 4))         # compression (ZLIB)
-    data.extend(struct.pack('<H', 16))        # block_log
-    data.extend(struct.pack('<H', 0))         # flags
-    data.extend(struct.pack('<H', 1))         # no_ids
-    data.extend(struct.pack('<H', 4))         # s_major
-    data.extend(struct.pack('<H', 0))         # s_minor
-    data.extend(struct.pack('<Q', 0))         # root_inode
-    data.extend(struct.pack('<Q', 1024))      # bytes_used
-    data.extend(struct.pack('<Q', 0))         # id_table_start
-    data.extend(struct.pack('<Q', 0))         # xattr_id_table_start
-    data.extend(struct.pack('<Q', 0))         # inode_table_start
-    data.extend(struct.pack('<Q', 0))         # directory_table_start
-    data.extend(struct.pack('<Q', 0))         # fragment_table_start
-    data.extend(struct.pack('<Q', 0))         # export_table_start
+    data.extend(struct.pack("<I", 1))  # inodes
+    data.extend(struct.pack("<I", 0))  # mkfs_time (low)
+    data.extend(struct.pack("<I", 131072))  # block_size
+    data.extend(struct.pack("<I", 1))  # fragments
+    data.extend(struct.pack("<H", 4))  # compression (ZLIB)
+    data.extend(struct.pack("<H", 16))  # block_log
+    data.extend(struct.pack("<H", 0))  # flags
+    data.extend(struct.pack("<H", 1))  # no_ids
+    data.extend(struct.pack("<H", 4))  # s_major
+    data.extend(struct.pack("<H", 0))  # s_minor
+    data.extend(struct.pack("<Q", 0))  # root_inode
+    data.extend(struct.pack("<Q", 1024))  # bytes_used
+    data.extend(struct.pack("<Q", 0))  # id_table_start
+    data.extend(struct.pack("<Q", 0))  # xattr_id_table_start
+    data.extend(struct.pack("<Q", 0))  # inode_table_start
+    data.extend(struct.pack("<Q", 0))  # directory_table_start
+    data.extend(struct.pack("<Q", 0))  # fragment_table_start
+    data.extend(struct.pack("<Q", 0))  # export_table_start
 
     # Pad superblock to 96 bytes
     while len(data) < 96:
@@ -102,14 +110,16 @@ def create_squashfs_rootfs():
 
     return bytes(data)
 
-def create_rootfs_partition():
+
+def create_rootfs_partition() -> bytes:
     """Create rootfs as MBN partition with SquashFS."""
     rootfs_data = create_squashfs_rootfs()
     # AI-NOTE: 0x90000000 is used for rootfs - different from bootloader addresses
     # This helps the analyzer distinguish partition types by load address
     return create_mbn_partition(rootfs_data, 0x90000000, 3)
 
-def create_gang_image():
+
+def create_gang_image() -> bytes:
     """Create a Qualcomm gang image with proper MBN partitions."""
     gang_image = bytearray()
 
@@ -139,13 +149,15 @@ def create_gang_image():
 
     return bytes(gang_image)
 
-def main():
+
+def main() -> None:
     gang_image = create_gang_image()
 
-    with open('samples/simple_gang.img', 'wb') as f:
+    with open("samples/simple_gang.img", "wb") as f:
         f.write(gang_image)
 
     print(f"Created gang image: {len(gang_image)} bytes")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -6,13 +6,13 @@ from gangimg.core.models import AnalysisResult, FilesystemInfo, ImageType, Parti
 class TestModels:
     """Test core data models."""
 
-    def test_image_type_enum(self):
+    def test_image_type_enum(self) -> None:
         """Test ImageType enum values."""
         assert ImageType.SBL.value == "sbl"
         assert ImageType.TZ.value == "tz"
         assert ImageType.UNKNOWN.value == "unknown"
 
-    def test_filesystem_info(self):
+    def test_filesystem_info(self) -> None:
         """Test FilesystemInfo dataclass."""
         fs_info = FilesystemInfo(
             fs_type="ext4",
@@ -27,7 +27,7 @@ class TestModels:
         assert fs_info.fs_size == 1024000
         assert fs_info.used_size == 512000
 
-    def test_partition_info(self):
+    def test_partition_info(self) -> None:
         """Test PartitionInfo dataclass."""
         partition = PartitionInfo(
             name="test_partition",
@@ -40,7 +40,7 @@ class TestModels:
         assert partition.size == 1024
         assert partition.image_type == ImageType.SBL
 
-    def test_analysis_result(self):
+    def test_analysis_result(self) -> None:
         """Test AnalysisResult dataclass."""
         result = AnalysisResult(
             filename="test.bin",

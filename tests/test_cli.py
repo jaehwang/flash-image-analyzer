@@ -1,6 +1,5 @@
 """Tests for CLI module."""
 
-from unittest.mock import patch
 
 import pytest
 
@@ -10,25 +9,25 @@ from gangimg.cli import create_parser, select_analyzer
 class TestCLI:
     """Test CLI functionality."""
 
-    def test_create_parser(self):
+    def test_create_parser(self) -> None:
         """Test parser creation."""
         parser = create_parser()
         assert parser.prog == "gangimg"
         assert parser.description == "Analyze embedded system gang images"
 
-    def test_parser_help(self):
+    def test_parser_help(self) -> None:
         """Test parser help doesn't crash."""
         parser = create_parser()
         with pytest.raises(SystemExit):
             parser.parse_args(["--help"])
 
-    def test_parser_version(self):
+    def test_parser_version(self) -> None:
         """Test version argument."""
         parser = create_parser()
         with pytest.raises(SystemExit):
             parser.parse_args(["--version"])
 
-    def test_select_analyzer_qualcomm(self):
+    def test_select_analyzer_qualcomm(self) -> None:
         """Test selecting Qualcomm analyzer."""
         import os
         import tempfile

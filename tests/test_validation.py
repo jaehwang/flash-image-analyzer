@@ -3,14 +3,13 @@
 import os
 import tempfile
 
-from gangimg.core.models import ImageType, PartitionInfo
 from gangimg.utils.validation import validate_gang_image
 
 
 class TestValidation:
     """Test validation utilities."""
 
-    def test_validate_gang_image_valid_file(self):
+    def test_validate_gang_image_valid_file(self) -> None:
         """Test validation with valid file."""
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(b"A" * 2048)  # 2KB file
@@ -23,7 +22,7 @@ class TestValidation:
             finally:
                 os.unlink(tmp.name)
 
-    def test_validate_gang_image_too_small(self):
+    def test_validate_gang_image_too_small(self) -> None:
         """Test validation with too small file."""
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(b"A" * 512)  # 512 bytes (too small)
@@ -36,7 +35,7 @@ class TestValidation:
             finally:
                 os.unlink(tmp.name)
 
-    def test_validate_gang_image_nonexistent(self):
+    def test_validate_gang_image_nonexistent(self) -> None:
         """Test validation with nonexistent file."""
         is_valid, errors = validate_gang_image("/nonexistent/file.bin")
         assert not is_valid

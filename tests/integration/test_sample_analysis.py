@@ -3,15 +3,13 @@
 import os
 import tempfile
 
-import pytest
-
 from gangimg.platforms.qualcomm import QualcommAnalyzer
 
 
 class TestSampleAnalysis:
     """Test analysis with sample files."""
 
-    def test_sample_generation_and_analysis(self):
+    def test_sample_generation_and_analysis(self) -> None:
         """Test creating and analyzing a sample."""
         # Create a simple ELF-like sample
         with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as tmp:
