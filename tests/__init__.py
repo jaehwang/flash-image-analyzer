@@ -1,1 +1,1 @@
-"""Test package for gangimg."""
+"""Test package for flash_img."""

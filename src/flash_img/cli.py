@@ -1,10 +1,10 @@
-"""Command-line interface for gangimg gang image analyzer."""
+"""Command-line interface for flash_img flash image analyzer."""
 
 import argparse
 import sys
 from pathlib import Path
 
-from .core.exceptions import GangimgError
+from .core.exceptions import FlashImgError
 from .core.models import AnalysisResult
 from .platforms.qualcomm import QualcommAnalyzer
 from .utils.formatting import format_output
@@ -13,10 +13,10 @@ from .utils.formatting import format_output
 def create_parser() -> argparse.ArgumentParser:
     """Create command-line argument parser."""
     parser = argparse.ArgumentParser(
-        description="Analyze embedded system gang images", prog="gangimg"
+        description="Analyze embedded system flash images", prog="flash_img"
     )
 
-    parser.add_argument("image", help="Gang image file to analyze")
+    parser.add_argument("image", help="Flash image file to analyze")
 
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
 
@@ -60,7 +60,7 @@ def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool) -> Q
         if platform == "qualcomm":
             return QualcommAnalyzer(image_path, skip_fs_analysis)
         else:
-            raise GangimgError(f"Platform '{platform}' not yet implemented")
+            raise FlashImgError(f"Platform '{platform}' not yet implemented")
 
     # Auto-detect platform
     try:
@@ -197,7 +197,7 @@ def main() -> None:
         if result.validation_errors:
             sys.exit(1)
 
-    except GangimgError as e:
+    except FlashImgError as e:
         print(f"Error: {e}")
         sys.exit(1)
     except KeyboardInterrupt:

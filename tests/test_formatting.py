@@ -1,6 +1,6 @@
 """Tests for formatting utilities."""
 
-from gangimg.utils.formatting import format_size
+from flash_img.utils.formatting import format_size
 
 
 class TestFormatting:

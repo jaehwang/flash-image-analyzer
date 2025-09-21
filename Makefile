@@ -18,7 +18,7 @@ test: ## Run tests with pytest
 	uv run pytest
 
 test-cov: ## Run tests with coverage
-	uv run pytest --cov=src/gangimg --cov-report=term-missing --cov-report=html
+	uv run pytest --cov=src/flash_img --cov-report=term-missing --cov-report=html
 
 lint: ## Run linting checks
 	uv run flake8 src tests
@@ -41,15 +41,15 @@ clean: ## Clean build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 
-sample: ## create sample gang image
+sample: ## create sample flash image
 	@[ -d samples ] || mkdir samples
 	uv run python scripts/create_simple_sample.py
 
 example: ## Run example analysis
-	uv run python -m gangimg.cli samples/simple_gang.bin
+	uv run python -m flash_img.cli samples/simple_flash.bin
 
 example-help: ## Show CLI help
-	uv run python -m gangimg.cli --help
+	uv run python -m flash_img.cli --help
 
 install-hooks: ## Install pre-commit hooks
 	uv run pre-commit install

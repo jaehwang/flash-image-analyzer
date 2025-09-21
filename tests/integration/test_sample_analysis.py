@@ -3,7 +3,7 @@
 import os
 import tempfile
 
-from gangimg.platforms.qualcomm import QualcommAnalyzer
+from flash_img.platforms.qualcomm import QualcommAnalyzer
 
 
 class TestSampleAnalysis:

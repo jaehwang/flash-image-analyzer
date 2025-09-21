@@ -3,7 +3,7 @@
 
 import pytest
 
-from gangimg.cli import create_parser, select_analyzer
+from flash_img.cli import create_parser, select_analyzer
 
 
 class TestCLI:
@@ -12,8 +12,8 @@ class TestCLI:
     def test_create_parser(self) -> None:
         """Test parser creation."""
         parser = create_parser()
-        assert parser.prog == "gangimg"
-        assert parser.description == "Analyze embedded system gang images"
+        assert parser.prog == "flash_img"
+        assert parser.description == "Analyze embedded system flash images"
 
     def test_parser_help(self) -> None:
         """Test parser help doesn't crash."""

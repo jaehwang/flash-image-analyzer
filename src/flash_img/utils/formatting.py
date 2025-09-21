@@ -27,7 +27,7 @@ def format_output(result: AnalysisResult, verbose: bool = False, fs_only: bool =
         partitions = [p for p in partitions if p.filesystem]
 
     # Header
-    output.append(f"Analyzing gang image: {result.filename}")
+    output.append(f"Analyzing flash image: {result.filename}")
     output.append(f"File size: {result.file_size} bytes ({format_size(result.file_size)})")
     output.append("-" * 60)
 

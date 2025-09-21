@@ -119,9 +119,9 @@ def create_rootfs_partition() -> bytes:
     return create_mbn_partition(rootfs_data, 0x90000000, 3)
 
 
-def create_gang_image() -> bytes:
-    """Create a Qualcomm gang image with proper MBN partitions."""
-    gang_image = bytearray()
+def create_flash_image() -> bytes:
+    """Create a Qualcomm flash image with proper MBN partitions."""
+    flash_image = bytearray()
 
     # AI-NOTE: Create partitions according to Qualcomm boot sequence and memory layout
     # SBL -> APPSBL -> Rootfs is the typical boot order
@@ -130,33 +130,33 @@ def create_gang_image() -> bytes:
     rootfs = create_rootfs_partition()
 
     # Add SBL partition first
-    gang_image.extend(sbl)
+    flash_image.extend(sbl)
 
     # AI-NOTE: Align to 4KB boundaries for better memory management
     # This is common practice in embedded systems for MMU page alignment
-    while len(gang_image) % 4096 != 0:
-        gang_image.append(0)
+    while len(flash_image) % 4096 != 0:
+        flash_image.append(0)
 
     # Add APPSBL partition
-    gang_image.extend(appsbl)
+    flash_image.extend(appsbl)
 
     # Align to 4KB boundary
-    while len(gang_image) % 4096 != 0:
-        gang_image.append(0)
+    while len(flash_image) % 4096 != 0:
+        flash_image.append(0)
 
     # Add rootfs partition
-    gang_image.extend(rootfs)
+    flash_image.extend(rootfs)
 
-    return bytes(gang_image)
+    return bytes(flash_image)
 
 
 def main() -> None:
-    gang_image = create_gang_image()
+    flash_image = create_flash_image()
 
-    with open("samples/simple_gang.bin", "wb") as f:
-        f.write(gang_image)
+    with open("samples/simple_flash.bin", "wb") as f:
+        f.write(flash_image)
 
-    print(f"Created gang image: {len(gang_image)} bytes")
+    print(f"Created flash image: {len(flash_image)} bytes")
 
 
 if __name__ == "__main__":

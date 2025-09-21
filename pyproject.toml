@@ -3,16 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gangimg"
+name = "flash_img"
 version = "0.1.0"
-description = "Gang image analysis tool for embedded systems"
+description = "Flash image analysis tool for embedded systems"
 readme = "README.md"
 requires-python = ">=3.8.1"
 license = {text = "MIT"}
 authors = [
-    {name = "Gang Image Analyzer Development Team"}
+    {name = "Flash Image Analyzer Development Team"}
 ]
-keywords = ["embedded", "gang-image", "qualcomm", "broadcom", "mediatek", "marvell"]
+keywords = ["embedded", "flash-image", "qualcomm", "broadcom", "mediatek", "marvell"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -40,11 +40,11 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/gangimg/gangimg"
-"Bug Tracker" = "https://github.com/gangimg/gangimg/issues"
+"Homepage" = "https://github.com/flash-img/flash-img"
+"Bug Tracker" = "https://github.com/flash-img/flash-img/issues"
 
 [project.scripts]
-gangimg = "gangimg.cli:main"
+flash_img = "flash_img.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -73,10 +73,10 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=src/gangimg --cov-report=term-missing --cov-report=html"
+addopts = "--cov=src/flash_img --cov-report=term-missing --cov-report=html"
 
 [tool.coverage.run]
-source = ["src/gangimg"]
+source = ["src/flash_img"]
 omit = [
     "*/tests/*",
     "*/test_*",
