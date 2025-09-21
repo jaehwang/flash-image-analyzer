@@ -8,7 +8,7 @@ This is a Flash Image Analysis Tool for embedded systems, specifically focused o
 
 ### Key Components
 
-- **Package Name**: `gangimg` - CLI tool for flash image analysis
+- **Package Name**: `flash_img` - CLI tool for flash image analysis
 - **Primary Platform**: Qualcomm (MBN format support)
 - **Core Functionality**:
   - Flash image parsing and partition detection
@@ -20,13 +20,12 @@ This is a Flash Image Analysis Tool for embedded systems, specifically focused o
 ### Project Structure
 
 ```
-src/gangimg/
+src/flash_img/
 ├── core/           # Core analysis engine and models
 ├── platforms/      # Platform-specific analyzers (Qualcomm, etc.)
 ├── analyzers/      # Filesystem and content analyzers
-├── utils/          # Utility functions (formatting, validation)
+├── utils/          # Utility functions (formatting)
 └── cli.py          # Command-line interface
-
 scripts/            # Development and sample generation scripts
 tests/              # Test suite including integration tests
 ```

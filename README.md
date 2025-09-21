@@ -222,41 +222,41 @@ pip install -e .
 
 ```bash
 # 도움말 확인
-uv run python -m gangimg.cli --help
+uv run python -m flash_img.cli --help
 
 # flash image 분석
-uv run python -m gangimg.cli firmware.bin
+uv run python -m flash_img.cli firmware.bin
 
 # 상세 정보와 함께 분석
-uv run python -m gangimg.cli -v firmware.bin
+uv run python -m flash_img.cli -v firmware.bin
 ```
 
 #### 설치 후 실행
 
 ```bash
 # 패키지 설치 후
-gangimg --help
-gangimg firmware.bin
-gangimg -v firmware.bin
+flash_img --help
+flash_img firmware.bin
+flash_img -v firmware.bin
 ```
 
 #### 고급 옵션
 
 ```bash
 # 파일시스템 분석 제외 (빠른 처리)
-uv run python -m gangimg.cli --no-fs-analysis firmware.bin
+uv run python -m flash_img.cli --no-fs-analysis firmware.bin
 
 # 파일시스템이 있는 파티션만 표시
-uv run python -m gangimg.cli --fs-only firmware.bin
+uv run python -m flash_img.cli --fs-only firmware.bin
 
 # 특정 파티션 추출
-uv run python -m gangimg.cli --extract system_0:extracted_system.bin firmware.bin
+uv run python -m flash_img.cli --extract system_0:extracted_system.bin firmware.bin
 
 # JSON 출력 형식
-uv run python -m gangimg.cli --output-format json firmware.bin
+uv run python -m flash_img.cli --output-format json firmware.bin
 
 # 플랫폼 지정
-uv run python -m gangimg.cli --platform qualcomm firmware.bin
+uv run python -m flash_img.cli --platform qualcomm firmware.bin
 ```
 
 #### 테스트용 샘플 생성 및 분석
@@ -268,7 +268,7 @@ uv run python -m gangimg.cli --platform qualcomm firmware.bin
 uv run python scripts/create_simple_sample.py
 
 # 2. 생성된 flash image 분석
-uv run python -m gangimg.cli samples/simple_gang.bin
+uv run python -m flash_img.cli samples/simple_flash.bin
 
 # 또는 Makefile로 분석 (샘플 생성 후)
 make example
@@ -330,7 +330,7 @@ Partition Validation:
 
 - **Name**: 자동 생성된 파티션 식별자
 - **Type**: 감지된 파티션 타입 (sbl, tz, rpm, boot 등)
-- **Offset**: gang image 내에서의 시작 위치
+- **Offset**: flash image 내에서의 시작 위치
 - **Size**: 물리적 파티션 크기
 - **Load Addr**: 부팅 시 로드되는 메모리 주소
 - **FS Type**: 감지된 파일시스템 타입 (해당하는 경우)
@@ -360,7 +360,7 @@ FS 크기: 58MB        (파일시스템 오버헤드 제외 후 사용 가능 �
 
 ```bash
 # 파일시스템 파티션 추출
-python gangimg firmware.bin --extract system_0:system.bin
+python flash_img firmware.bin --extract system_0:system.bin
 
 # 파일시스템 타입 확인
 file system.bin
@@ -380,7 +380,7 @@ sudo mount -t ext4 -o loop system.bin /mnt/extracted
 
 ```bash
 # 부트로더 추출
-python gangimg firmware.bin --extract sbl_0:bootloader.bin
+python flash_img firmware.bin --extract sbl_0:bootloader.bin
 
 # 헥스 에디터나 디스어셈블러로 분석
 hexdump -C bootloader.bin | head
@@ -399,7 +399,7 @@ Error: File firmware.bin not found
 
 ##### 파티션이 감지되지 않음
 ```bash
-Gang header not found, scanning for individual MBN images...
+Flash header not found, scanning for individual MBN images...
 Found 0 partitions
 ```
 **해결책**:
