@@ -46,7 +46,6 @@ sample: ## create sample gang image
 	uv run python scripts/create_simple_sample.py
 
 example: ## Run example analysis
-	uv run python -m gangimg.cli samples/simple_test.bin
 	uv run python -m gangimg.cli samples/simple_gang.bin
 
 example-help: ## Show CLI help

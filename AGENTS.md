@@ -4,14 +4,14 @@ This file provides guidance to AI coding agent when working with code in this re
 
 ## Project Overview
 
-This is a Gang Image Analysis Tool for embedded systems, specifically focused on analyzing and validating firmware images used in embedded devices. The project is written in Python and provides CLI tools for analyzing gang images from various chipset platforms.
+This is a Flash Image Analysis Tool for embedded systems, specifically focused on analyzing and validating firmware images used in embedded devices. The project is written in Python and provides CLI tools for analyzing flash images from various chipset platforms.
 
 ### Key Components
 
-- **Package Name**: `gangimg` - CLI tool for gang image analysis
+- **Package Name**: `gangimg` - CLI tool for flash image analysis
 - **Primary Platform**: Qualcomm (MBN format support)
 - **Core Functionality**:
-  - Gang image parsing and partition detection
+  - Flash image parsing and partition detection
   - Filesystem analysis (ext2/3/4, SquashFS, UBIFS, JFFS2, YAFFS2)
   - Memory layout validation
   - Partition extraction capabilities
@@ -63,7 +63,7 @@ This project uses modern Python tooling with `uv` as the primary package manager
 - `make test-cov` - Run tests with coverage reporting
 
 **Sample Generation and Analysis**:
-- `make sample` - Generate test gang image samples
+- `make sample` - Generate test flash image samples
 - `make example` - Run example analysis on generated samples
 - `make example-help` - Show CLI help
 

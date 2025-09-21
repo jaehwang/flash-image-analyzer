@@ -1,12 +1,12 @@
-# Gang Image 분석 도구
+# Flash Image 분석 도구
 
-임베디드 시스템에서 사용되는 gang image를 분석하고 검증하는 CLI 도구입니다.
+임베디드 시스템에서 사용되는 flash image를 분석하고 검증하는 CLI 도구입니다.
 
-## Gang Image란 무엇인가?
+## Flash Image란 무엇인가?
 
 ### 개념
 
-Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 파일로 묶어서 플래시 메모리에 프로그래밍하는 형식입니다. 주로 다음과 같은 임베디드 시스템에서 사용됩니다:
+Flash image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 파일로 묶어서 플래시 메모리에 프로그래밍하는 형식입니다. 주로 다음과 같은 임베디드 시스템에서 사용됩니다:
 
 - **라우터 펌웨어**: 공유기, 스위치 등 네트워크 장비
 - **IoT 디바이스**: 스마트 홈 기기, 센서 노드
@@ -20,7 +20,7 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 3. **품질 관리**: 검증된 구성 요소들의 조합으로 안정성 확보
 4. **배포 효율성**: 펌웨어 업데이트 시 단일 파일로 배포
 
-### 전형적인 Gang Image 구조
+### 전형적인 Flash Image 구조
 
 ```
 ┌──────────────────────┐ 0x00000000
@@ -54,7 +54,7 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 
 ## 칩셋별 차이점
 
-임베디드 시스템에서 gang image의 구조와 형식은 사용하는 칩셋에 따라 크게 달라집니다. 각 칩셋 제조사는 자체적인 부팅 방식과 메모리 레이아웃을 가지고 있어 서로 다른 도구와 분석 방법이 필요합니다.
+임베디드 시스템에서 flash image의 구조와 형식은 사용하는 칩셋에 따라 크게 달라집니다. 각 칩셋 제조사는 자체적인 부팅 방식과 메모리 레이아웃을 가지고 있어 서로 다른 도구와 분석 방법이 필요합니다.
 
 ### 주요 칩셋별 특성
 
@@ -145,18 +145,18 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 4. **📋 Marvell** - U-Boot, 네트워크 프로세서
 5. **📋 기타 플랫폼** - 사용자 요구에 따라 추가
 
-## Qualcomm Gang Image 분석 도구
+## Qualcomm Flash Image 분석 도구
 
 ### 개요
 
-Qualcomm 플랫폼용 gang image를 분석하는 CLI 도구입니다. MBN (Multi-Boot Image) 형식을 지원하며, 파티션 구조 분석, 파일시스템 검사, 무결성 검증 기능을 제공합니다.
+Qualcomm 플랫폼용 flash image를 분석하는 CLI 도구입니다. MBN (Multi-Boot Image) 형식을 지원하며, 파티션 구조 분석, 파일시스템 검사, 무결성 검증 기능을 제공합니다.
 
 ### 주요 기능
 
 #### 핵심 분석 기능
 
 - **MBN 헤더 파싱**: Qualcomm의 Multi-Boot Image 형식 분석
-- **ELF 형식 지원**: ELF 기반 gang image 처리
+- **ELF 형식 지원**: ELF 기반 flash image 처리
 - **자동 파티션 감지**: 부트로더, 커널, 파일시스템 자동 식별
 - **메모리 레이아웃 검증**: 오버랩 및 정렬 문제 검사
 - **무결성 검증**: CRC32 체크섬 및 크기 검증
@@ -224,7 +224,7 @@ pip install -e .
 # 도움말 확인
 uv run python -m gangimg.cli --help
 
-# gang image 분석
+# flash image 분석
 uv run python -m gangimg.cli firmware.bin
 
 # 상세 정보와 함께 분석
@@ -261,20 +261,20 @@ uv run python -m gangimg.cli --platform qualcomm firmware.bin
 
 #### 테스트용 샘플 생성 및 분석
 
-테스트를 위한 Qualcomm 명세 준수 gang image를 생성하고 분석할 수 있습니다:
+테스트를 위한 Qualcomm 명세 준수 flash image를 생성하고 분석할 수 있습니다:
 
 ```bash
-# 1. Qualcomm gang image 샘플 생성 (MBN 파티션 구조, SquashFS rootfs 포함)
+# 1. Qualcomm flash image 샘플 생성 (MBN 파티션 구조, SquashFS rootfs 포함)
 uv run python scripts/create_simple_sample.py
 
-# 2. 생성된 gang image 분석
+# 2. 생성된 flash image 분석
 uv run python -m gangimg.cli samples/simple_gang.bin
 
 # 또는 Makefile로 분석 (샘플 생성 후)
 make example
 ```
 
-생성되는 gang image는 다음과 같은 구조를 가집니다:
+생성되는 flash image는 다음과 같은 구조를 가집니다:
 - **SBL 파티션**: Secondary Boot Loader (4KB, 0x40000000)
 - **APPSBL 파티션**: Application SBL (2KB, 0x8F600000)
 - **Rootfs 파티션**: SquashFS 형식 (1MB+, README.md 파일 포함)
@@ -283,7 +283,7 @@ make example
 - 각 파티션마다 40바이트 MBN 헤더 구조 생성
 - Qualcomm 메모리 맵에 따른 로드 주소 할당
 - SquashFS 압축 파일시스템으로 rootfs 구현
-- 분석 도구가 인식할 수 있는 완전한 gang image 생성
+- 분석 도구가 인식할 수 있는 완전한 flash image 생성
 
 ### 출력 예시
 
@@ -403,7 +403,7 @@ Gang header not found, scanning for individual MBN images...
 Found 0 partitions
 ```
 **해결책**:
-- 실제로 gang image인지 확인
+- 실제로 flash image인지 확인
 - `--verbose` 옵션으로 상세 정보 확인
 - 파일이 암호화되거나 압축되어 있는지 확인
 
@@ -424,7 +424,7 @@ Warning: Error analyzing filesystem at offset 0x00800000: ...
 ### 향후 계획
 
 #### 기능 확장
-- **압축 파일 지원**: gzip, lzma 압축된 gang image
+- **압축 파일 지원**: gzip, lzma 압축된 flash image
 - **암호화 감지**: 암호화된 파티션 식별
 - **GUI 인터페이스**: 그래픽 사용자 인터페이스 추가
 - **배치 처리**: 여러 파일 동시 분석
