@@ -459,3 +459,6 @@ Warning: Error analyzing filesystem at offset 0x00800000: ...
 - [MTD (Memory Technology Device) 서브시스템](https://www.linux-mtd.infradead.org/)
 - [U-Boot 문서](https://docs.u-boot.org/)
 - [SquashFS 형식 명세](https://github.com/plougher/squashfs-tools)
+
+- [Binwarlk: Firmware Analysis Tool](https://github.com/ReFirmLabs/binwalk)
+- [Qualcomm Emergency Download(EDL) Mode Hacking](https://github.com/bkerler/edl)
