@@ -33,7 +33,9 @@ def validate_gang_image(filename: str) -> tuple[bool, list[str]]:
     return len(errors) == 0, errors
 
 
-def calculate_checksum(f: BinaryIO, offset: int, size: int, algorithm: str = "crc32") -> Union[int, str]:
+def calculate_checksum(
+    f: BinaryIO, offset: int, size: int, algorithm: str = "crc32"
+) -> Union[int, str]:
     """Calculate checksum for a section of the file."""
     current_pos = f.tell()
     f.seek(offset)

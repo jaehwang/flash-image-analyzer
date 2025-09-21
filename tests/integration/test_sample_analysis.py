@@ -2,7 +2,9 @@
 
 import os
 import tempfile
+
 import pytest
+
 from gangimg.platforms.qualcomm import QualcommAnalyzer
 
 

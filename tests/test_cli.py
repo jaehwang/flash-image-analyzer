@@ -1,7 +1,9 @@
 """Tests for CLI module."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from gangimg.cli import create_parser, select_analyzer
 
 
@@ -28,8 +30,8 @@ class TestCLI:
 
     def test_select_analyzer_qualcomm(self):
         """Test selecting Qualcomm analyzer."""
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(b"test data")

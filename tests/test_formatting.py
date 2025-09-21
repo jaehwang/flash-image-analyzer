@@ -1,7 +1,7 @@
 """Tests for formatting utilities."""
 
+from gangimg.core.models import AnalysisResult, ImageType, PartitionInfo
 from gangimg.utils.formatting import format_size
-from gangimg.core.models import AnalysisResult, PartitionInfo, ImageType
 
 
 class TestFormatting:
