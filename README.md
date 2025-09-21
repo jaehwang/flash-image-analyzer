@@ -78,7 +78,7 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 테스트 샘플 구조:
 - SBL (0x40000000): 4KB 부트로더
 - APPSBL (0x8F600000): 2KB 애플리케이션 부트로더
-- Rootfs (0x90000000): 1MB+ SquashFS (README.md 포함)
+- Rootfs (0x90000000): 1MB+
 ```
 
 #### Broadcom 플랫폼  
@@ -360,7 +360,7 @@ FS 크기: 58MB        (파일시스템 오버헤드 제외 후 사용 가능 �
 
 ```bash
 # 파일시스템 파티션 추출
-python qcom_gang_analyzer.py firmware.bin --extract system_0:system.bin
+python gangimg firmware.bin --extract system_0:system.bin
 
 # 파일시스템 타입 확인
 file system.bin
@@ -380,7 +380,7 @@ sudo mount -t ext4 -o loop system.bin /mnt/extracted
 
 ```bash
 # 부트로더 추출
-python qcom_gang_analyzer.py firmware.bin --extract sbl_0:bootloader.bin
+python gangimg firmware.bin --extract sbl_0:bootloader.bin
 
 # 헥스 에디터나 디스어셈블러로 분석
 hexdump -C bootloader.bin | head
