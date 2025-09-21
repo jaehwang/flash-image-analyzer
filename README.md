@@ -71,8 +71,14 @@ Gang image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 0x86000000 ~ 0x87FFFFFF: TZ (TrustZone)
 0x60000000 ~ 0x6FFFFFFF: RPM (Resource Power Manager)
 0x8F600000 ~ 0x8F6FFFFF: APPSBL (Application SBL)
+0x90000000 ~           : Rootfs/User Data
 
 지원 파일시스템: UBIFS, ext4, SquashFS
+
+테스트 샘플 구조:
+- SBL (0x40000000): 4KB 부트로더
+- APPSBL (0x8F600000): 2KB 애플리케이션 부트로더
+- Rootfs (0x90000000): 1MB+ SquashFS (README.md 포함)
 ```
 
 #### Broadcom 플랫폼  
@@ -255,38 +261,46 @@ uv run python -m gangimg.cli --platform qualcomm firmware.bin
 
 #### 테스트용 샘플 생성 및 분석
 
-테스트를 위한 샘플 gang image를 생성하고 분석할 수 있습니다:
+테스트를 위한 Qualcomm 명세 준수 gang image를 생성하고 분석할 수 있습니다:
 
 ```bash
-# 1. 먼저 테스트 샘플 생성 (1KB ELF ARM 바이너리)
+# 1. Qualcomm gang image 샘플 생성 (MBN 파티션 구조, SquashFS rootfs 포함)
 uv run python scripts/create_simple_sample.py
 
-# 2. 생성된 샘플 분석
-uv run python -m gangimg.cli samples/simple_test.bin
+# 2. 생성된 gang image 분석
+uv run python -m gangimg.cli samples/simple_gang.img
 
 # 또는 Makefile로 분석 (샘플 생성 후)
 make example
 ```
 
+생성되는 gang image는 다음과 같은 구조를 가집니다:
+- **SBL 파티션**: Secondary Boot Loader (4KB, 0x40000000)
+- **APPSBL 파티션**: Application SBL (2KB, 0x8F600000)
+- **Rootfs 파티션**: SquashFS 형식 (1MB+, README.md 파일 포함)
+
+이 스크립트는 Qualcomm 명세에 맞는 **MBN (Multi-Boot Image) 형식**을 사용하여:
+- 각 파티션마다 40바이트 MBN 헤더 구조 생성
+- Qualcomm 메모리 맵에 따른 로드 주소 할당
+- SquashFS 압축 파일시스템으로 rootfs 구현
+- 분석 도구가 인식할 수 있는 완전한 gang image 생성
+
 ### 출력 예시
 
 #### 기본 파티션 정보
 ```
-Found 7 partitions:
+Found 3 partitions:
 ------------------------------------------------------------------------------------------------------------------------
-Name            Type       Offset       Size         Load Addr    FS Type    FS Size      Used      
+Name            Type       Offset       Size         Load Addr    FS Type    FS Size      Used
 ------------------------------------------------------------------------------------------------------------------------
-sbl_0           sbl        0x00000000   256.0KB      0x40000000   N/A        N/A          N/A       
-tz_0            tz         0x00040000   512.0KB      0x86000000   N/A        N/A          N/A       
-rpm_0           rpm        0x000C0000   256.0KB      0x60000000   N/A        N/A          N/A       
-appsbl_0        appsbl     0x00100000   1.0MB        0x8F600000   N/A        N/A          N/A       
-boot_0          boot       0x00200000   8.0MB        0x80008000   N/A        N/A          N/A       
-system_0        unknown    0x00A00000   64.0MB       0x00000000   squashfs   58.3MB       58.3MB    
-userdata_0      unknown    0x04A00000   128.0MB      0x00000000   ext        120.5MB      45.2MB    
+sbl_0           sbl        0x00000000   4.0KB        0x40000000   N/A        N/A        N/A
+appsbl_1        appsbl     0x00002000   2.0KB        0x8f600000   N/A        N/A        N/A
+unknown_2       unknown    0x00003000   1.0MB        0x90000000   squashfs   1.0KB      1.0KB
 ------------------------------------------------------------------------------------------------------------------------
-Total partition size: 201.8MB
-Total filesystem used: 103.5MB
-File size: 256.0MB
+Total partition size: 1.0MB
+Total filesystem used: 1.0KB
+File size: 1.0MB
+Unused space: 5.9KB
 ```
 
 #### 파일시스템 상세 정보
@@ -295,8 +309,7 @@ Filesystem Details:
 ----------------------------------------------------------------------------------------------------
 Partition       FS Type    Total        Used         Free         Usage%   Block Size
 ----------------------------------------------------------------------------------------------------
-system_0        squashfs   58.3MB       58.3MB       0B           100.0%   131.1KB   
-userdata_0      ext        120.5MB      45.2MB       75.3MB       37.5%    4.0KB     
+unknown_2       squashfs   1.0KB        1.0KB        0B           100.0%   128.0KB
 ----------------------------------------------------------------------------------------------------
 ```
 

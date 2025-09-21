@@ -188,10 +188,15 @@ class QualcommAnalyzer(GangImageAnalyzer):
                     entry_point=mbn_header.image_dest_ptr,
                 )
 
-                # Analyze filesystem if this looks like a filesystem partition
+                # AI-NOTE: Only analyze filesystem for partitions larger than 1MB for performance reasons
+                # Small partitions are typically bootloaders/firmware, not filesystems
                 if not self.skip_fs_analysis and partition.size > 1024 * 1024:
                     fs_analyzer = FilesystemAnalyzer()
-                    partition.filesystem = fs_analyzer.analyze(f, partition.offset, partition.size)
+                    # AI-NOTE: MBN partitions have a 40-byte header, so we need to skip it
+                    # to find the actual filesystem data (e.g., SquashFS, ext4, etc.)
+                    fs_offset = partition.offset + 40
+                    fs_size = partition.size - 40
+                    partition.filesystem = fs_analyzer.analyze(f, fs_offset, fs_size)
 
                 partitions.append(partition)
                 partition_count += 1
