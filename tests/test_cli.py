@@ -1,6 +1,5 @@
 """Tests for CLI module."""
 
-
 import pytest
 
 from flash_img.cli import create_parser, select_analyzer
