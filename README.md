@@ -284,10 +284,10 @@ pip install -e .
 uv run python -m flash_img.cli --help
 
 # flash image 분석
-uv run python -m flash_img.cli firmware.bin
+uv run python -m flash_img.cli firmware.img
 
 # 상세 정보와 함께 분석
-uv run python -m flash_img.cli -v firmware.bin
+uv run python -m flash_img.cli -v firmware.img
 ```
 
 #### 설치 후 실행
@@ -295,31 +295,31 @@ uv run python -m flash_img.cli -v firmware.bin
 ```bash
 # 패키지 설치 후
 flash_img --help
-flash_img firmware.bin
-flash_img -v firmware.bin
+flash_img firmware.img
+flash_img -v firmware.img
 ```
 
 #### 고급 옵션
 
 ```bash
 # 파일시스템 분석 제외 (빠른 처리)
-uv run python -m flash_img.cli --no-fs-analysis firmware.bin
+uv run python -m flash_img.cli --no-fs-analysis firmware.img
 
 # 파일시스템이 있는 파티션만 표시
-uv run python -m flash_img.cli --fs-only firmware.bin
+uv run python -m flash_img.cli --fs-only firmware.img
 
 # 특정 파티션 추출
-uv run python -m flash_img.cli --extract system_0:extracted_system.bin firmware.bin
+uv run python -m flash_img.cli --extract system_0:extracted_system.img firmware.img
 
 # JSON 출력 형식
-uv run python -m flash_img.cli --output-format json firmware.bin
+uv run python -m flash_img.cli --output-format json firmware.img
 
 # 플랫폼 지정 (자동 감지 실패 시)
-uv run python -m flash_img.cli --platform qualcomm firmware.bin
-uv run python -m flash_img.cli --platform nvidia tegra_firmware.bin
+uv run python -m flash_img.cli --platform qualcomm firmware.img
+uv run python -m flash_img.cli --platform nvidia tegra_firmware.img
 
 # CSV 출력 형식
-uv run python -m flash_img.cli --output-format csv firmware.bin
+uv run python -m flash_img.cli --output-format csv firmware.img
 ```
 
 #### 테스트용 샘플 생성 및 분석
@@ -338,22 +338,22 @@ uv run python scripts/create_simple_sample.py --platform nvidia --verbose
 make example
 
 # 또는 개별 분석
-uv run flash_img samples/qualcomm_flash.bin
-uv run flash_img samples/nvidia_flash.bin
+uv run flash_img samples/qualcomm_flash.img
+uv run flash_img samples/nvidia_flash.img
 
 # 커스텀 출력 경로로 생성
-uv run python scripts/create_simple_sample.py --platform nvidia -o /tmp/my_tegra.bin
+uv run python scripts/create_simple_sample.py --platform nvidia -o /tmp/my_tegra.img
 ```
 
 #### 생성되는 샘플 구조
 
-**Qualcomm 샘플 (qualcomm_flash.bin)**:
+**Qualcomm 샘플 (qualcomm_flash.img)**:
 - **SBL 파티션**: Secondary Boot Loader (4KB, 0x40000000)
 - **APPSBL 파티션**: Application SBL (2KB, 0x8F600000)
 - **Rootfs 파티션**: SquashFS 형식 (1MB+, README.md 파일 포함)
 - **형식**: MBN (Multi-Boot Image) 헤더 구조 사용
 
-**NVIDIA 샘플 (nvidia_flash.bin)**:
+**NVIDIA 샘플 (nvidia_flash.img)**:
 - **BCT**: Boot Configuration Table (4KB)
 - **GPT**: 파티션 테이블 헤더
 - **MB1**: 1차 부트로더 (64KB)
@@ -455,18 +455,18 @@ FS 크기: 58MB        (파일시스템 오버헤드 제외 후 사용 가능 �
 
 ```bash
 # 파일시스템 파티션 추출
-uv run python -m flash_img.cli --extract system_0:system.bin firmware.bin
+uv run python -m flash_img.cli --extract system_0:system.img firmware.img
 
 # 파일시스템 타입 확인
-file system.bin
+file system.img
 
 # 파티션 마운트
 sudo mkdir /mnt/extracted
-sudo mount -o loop system.bin /mnt/extracted
+sudo mount -o loop system.img /mnt/extracted
 
 # 특정 파일시스템 타입으로 마운트:
-sudo mount -t squashfs -o loop system.bin /mnt/extracted
-sudo mount -t ext4 -o loop system.bin /mnt/extracted
+sudo mount -t squashfs -o loop system.img /mnt/extracted
+sudo mount -t ext4 -o loop system.img /mnt/extracted
 ```
 
 #### 마운트 불가능한 파티션
@@ -475,11 +475,11 @@ sudo mount -t ext4 -o loop system.bin /mnt/extracted
 
 ```bash
 # 부트로더 추출
-uv run python -m flash_img.cli --extract sbl_0:bootloader.bin firmware.bin
+uv run python -m flash_img.cli --extract sbl_0:bootloader.img firmware.img
 
 # 헥스 에디터나 디스어셈블러로 분석
-hexdump -C bootloader.bin | head
-objdump -D -b binary -m arm bootloader.bin
+hexdump -C bootloader.img | head
+objdump -D -b binary -m arm bootloader.img
 ```
 
 ### 문제 해결
@@ -488,7 +488,7 @@ objdump -D -b binary -m arm bootloader.bin
 
 ##### 파일을 찾을 수 없음
 ```bash
-Error: File firmware.bin not found
+Error: File firmware.img not found
 ```
 **해결책**: 파일 경로와 권한을 확인하세요
 

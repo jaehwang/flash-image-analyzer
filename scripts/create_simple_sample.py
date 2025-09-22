@@ -255,17 +255,23 @@ def create_tegra_filesystem() -> bytes:
     # Pad to superblock location (1024 bytes from start)
     data.extend(b"\x00" * 1024)
 
-    # ext4 magic number
-    data.extend(struct.pack("<H", 0xEF53))
+    # Create ext4 superblock structure
+    superblock = bytearray(1024)  # Superblock is typically 1024 bytes
 
-    # Basic superblock fields
-    data.extend(struct.pack("<I", 1000))  # s_inodes_count
-    data.extend(struct.pack("<I", 4000))  # s_blocks_count_lo
-    data.extend(struct.pack("<I", 400))  # s_r_blocks_count_lo
-    data.extend(struct.pack("<I", 3600))  # s_free_blocks_count_lo
-    data.extend(struct.pack("<I", 990))  # s_free_inodes_count
-    data.extend(struct.pack("<I", 1))  # s_first_data_block
-    data.extend(struct.pack("<I", 2))  # s_log_block_size (4KB blocks)
+    # ext4 magic number at offset 56 in superblock
+    struct.pack_into("<H", superblock, 56, 0xEF53)
+
+    # Basic superblock fields (in proper ext4 layout)
+    struct.pack_into("<I", superblock, 0, 1000)  # s_inodes_count
+    struct.pack_into("<I", superblock, 4, 4000)  # s_blocks_count_lo
+    struct.pack_into("<I", superblock, 8, 400)  # s_r_blocks_count_lo
+    struct.pack_into("<I", superblock, 12, 3600)  # s_free_blocks_count_lo
+    struct.pack_into("<I", superblock, 16, 990)  # s_free_inodes_count
+    struct.pack_into("<I", superblock, 20, 1)  # s_first_data_block
+    struct.pack_into("<I", superblock, 24, 2)  # s_log_block_size (4KB blocks)
+
+    # Add the superblock to data
+    data.extend(superblock)
 
     # Add fake file content
     readme_content = (
@@ -336,20 +342,23 @@ def create_nvidia_flash_image() -> bytes:
     flash_image.extend(gpt_header)
 
     # Add GPT partition entries (4 partitions)
-    # MB1 bootloader
-    mb1_entry = create_gpt_partition_entry("mb1", 34, 161)  # 64KB
+    # Note: LBA values are relative to start of the device (including BCT + MBR)
+    # BCT + MBR + GPT takes 34 sectors (17408 bytes), so data starts at LBA 34
+
+    # MB1 bootloader - 64KB = 128 sectors
+    mb1_entry = create_gpt_partition_entry("mb1", 34, 161)  # LBA 34-161
     flash_image.extend(mb1_entry)
 
-    # MB2/TegraBoot
-    mb2_entry = create_gpt_partition_entry("mb2", 162, 289)  # 64KB
+    # MB2/TegraBoot - 64KB = 128 sectors
+    mb2_entry = create_gpt_partition_entry("mb2", 162, 289)  # LBA 162-289
     flash_image.extend(mb2_entry)
 
-    # CBoot
-    cboot_entry = create_gpt_partition_entry("cboot", 290, 417)  # 64KB
+    # CBoot - 64KB = 128 sectors
+    cboot_entry = create_gpt_partition_entry("cboot", 290, 417)  # LBA 290-417
     flash_image.extend(cboot_entry)
 
-    # Root filesystem
-    rootfs_entry = create_gpt_partition_entry("rootfs", 418, 2465)  # ~1MB
+    # Root filesystem - remaining space (~2048 sectors)
+    rootfs_entry = create_gpt_partition_entry("rootfs", 418, 2465)  # LBA 418-2465
     flash_image.extend(rootfs_entry)
 
     # Pad partition table to LBA 34 (where actual partitions start)
@@ -394,7 +403,7 @@ def create_parser() -> argparse.ArgumentParser:
         "-o",
         "--output",
         default=None,
-        help="Output file path (default: samples/{platform}_flash.bin)",
+        help="Output file path (default: samples/{platform}_flash.img)",
     )
 
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
@@ -412,7 +421,7 @@ def main() -> None:
     else:
         # Create samples directory if it doesn't exist
         os.makedirs("samples", exist_ok=True)
-        output_file = f"samples/{args.platform}_flash.bin"
+        output_file = f"samples/{args.platform}_flash.img"
 
     # Generate flash image based on platform
     if args.platform == "qualcomm":

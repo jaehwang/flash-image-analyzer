@@ -44,31 +44,31 @@ clean: ## Clean build artifacts
 sample: ## Create sample flash images for both platforms
 	@[ -d samples ] || mkdir samples
 	@echo "Creating Qualcomm sample..."
-	uv run python scripts/create_simple_sample.py --platform qualcomm -o samples/qualcomm_flash.bin --verbose
+	uv run python scripts/create_simple_sample.py --platform qualcomm -o samples/qualcomm_flash.img --verbose
 	@echo "Creating NVIDIA sample..."
-	uv run python scripts/create_simple_sample.py --platform nvidia -o samples/nvidia_flash.bin --verbose
+	uv run python scripts/create_simple_sample.py --platform nvidia -o samples/nvidia_flash.img --verbose
 	@echo "Sample images created in samples/ directory"
 
 sample-qualcomm: ## Create Qualcomm sample flash image
 	@[ -d samples ] || mkdir samples
-	uv run python scripts/create_simple_sample.py --platform qualcomm -o samples/qualcomm_flash.bin --verbose
+	uv run python scripts/create_simple_sample.py --platform qualcomm -o samples/qualcomm_flash.img --verbose
 
 sample-nvidia: ## Create NVIDIA sample flash image
 	@[ -d samples ] || mkdir samples
-	uv run python scripts/create_simple_sample.py --platform nvidia -o samples/nvidia_flash.bin --verbose
+	uv run python scripts/create_simple_sample.py --platform nvidia -o samples/nvidia_flash.img --verbose
 
 example: ## Run example analysis on both platform samples
 	@echo "Analyzing Qualcomm sample..."
-	uv run flash_img samples/qualcomm_flash.bin --verbose
+	uv run flash_img samples/qualcomm_flash.img --verbose
 	@echo ""
 	@echo "Analyzing NVIDIA sample..."
-	uv run flash_img samples/nvidia_flash.bin --verbose
+	uv run flash_img samples/nvidia_flash.img --verbose
 
 example-qualcomm: ## Run example analysis on Qualcomm sample
-	uv run flash_img samples/qualcomm_flash.bin --verbose
+	uv run flash_img samples/qualcomm_flash.img --verbose
 
 example-nvidia: ## Run example analysis on NVIDIA sample
-	uv run flash_img samples/nvidia_flash.bin --verbose
+	uv run flash_img samples/nvidia_flash.img --verbose
 
 example-help: ## Show CLI help
 	uv run python -m flash_img.cli --help

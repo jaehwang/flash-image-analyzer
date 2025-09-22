@@ -59,10 +59,12 @@ class NVIDIAAnalyzer(ImageAnalyzer):
                 return True
 
         # Check for GPT signature (common in Tegra images)
-        f.seek(512)  # GPT header is typically at LBA 1 (512 bytes)
-        gpt_header = f.read(8)
-        if gpt_header == self.GPT_SIGNATURE:
-            return True
+        # GPT can be at different locations depending on BCT size and layout
+        for gpt_offset in [512, 1024, 2048, 4096, 4608]:  # Common GPT locations
+            f.seek(gpt_offset)
+            gpt_header = f.read(8)
+            if gpt_header == self.GPT_SIGNATURE:
+                return True
 
         # Check for BCT pattern anywhere in first 64KB
         f.seek(0)
@@ -155,7 +157,20 @@ class NVIDIAAnalyzer(ImageAnalyzer):
 
     def _parse_gpt_partitions(self, f: BinaryIO) -> List[PartitionInfo]:
         """Parse GPT partition table."""
-        f.seek(512)  # GPT header at LBA 1
+        # Search for GPT signature at different locations
+        gpt_offset = None
+        for offset in [512, 1024, 2048, 4096, 4608]:  # Common GPT locations
+            f.seek(offset)
+            header_check = f.read(8)
+            if header_check == self.GPT_SIGNATURE:
+                gpt_offset = offset
+                break
+
+        if gpt_offset is None:
+            return []
+
+        # Read full GPT header from found location
+        f.seek(gpt_offset)
         gpt_header = f.read(92)
 
         if len(gpt_header) < 92 or gpt_header[:8] != self.GPT_SIGNATURE:
@@ -173,16 +188,20 @@ class NVIDIAAnalyzer(ImageAnalyzer):
             partitions = []
 
             # Read partition entries
-            f.seek(partition_entry_lba * 512)
+            # For Tegra images, LBA values in GPT are typically relative to the start of the entire image (including BCT)
+            # So we use base_offset = 0, but still need to find partition entries relative to GPT location
+            base_offset = 0  # LBA 0 is at the start of the file
+            partition_entries_offset = gpt_offset - 512 + (partition_entry_lba * 512)
+            f.seek(partition_entries_offset)
             for i in range(num_partition_entries):
                 entry = f.read(partition_entry_size)
                 if len(entry) < 128:  # Standard GPT entry size
                     break
 
-                partition = self._parse_gpt_entry(entry, i)
+                partition = self._parse_gpt_entry(entry, i, base_offset)
                 if partition:
                     # Analyze filesystem if applicable
-                    if not self.skip_fs_analysis and partition.size > 1024 * 1024:
+                    if not self.skip_fs_analysis and partition.size >= 1024 * 1024:
                         fs_analyzer = FilesystemAnalyzer()
                         partition.filesystem = fs_analyzer.analyze(
                             f, partition.offset, partition.size
@@ -195,7 +214,9 @@ class NVIDIAAnalyzer(ImageAnalyzer):
         except (struct.error, ValueError):
             return []
 
-    def _parse_gpt_entry(self, entry: bytes, index: int) -> Optional[PartitionInfo]:
+    def _parse_gpt_entry(
+        self, entry: bytes, index: int, base_offset: int = 0
+    ) -> Optional[PartitionInfo]:
         """Parse a single GPT partition entry."""
         if len(entry) < 128:
             return None
@@ -227,7 +248,7 @@ class NVIDIAAnalyzer(ImageAnalyzer):
 
             return PartitionInfo(
                 name=name,
-                offset=first_lba * 512,
+                offset=base_offset + (first_lba * 512),
                 size=partition_size,
                 image_type=image_type,
             )
