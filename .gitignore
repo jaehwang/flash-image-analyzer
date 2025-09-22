@@ -142,7 +142,7 @@ uv.lock
 htmlcov/
 .pytest_cache/
 
-# Gang image test files
+# Flash image test files
 *.bin
 *.img
 *.raw

@@ -8,19 +8,19 @@ class FlashImgError(Exception):
 
 
 class AnalysisError(FlashImgError):
-    """Error during gang image analysis."""
+    """Error during flash image analysis."""
 
     pass
 
 
 class ValidationError(FlashImgError):
-    """Error during gang image validation."""
+    """Error during flash image validation."""
 
     pass
 
 
 class UnsupportedFormatError(FlashImgError):
-    """Gang image format is not supported."""
+    """Flash image format is not supported."""
 
     pass
 

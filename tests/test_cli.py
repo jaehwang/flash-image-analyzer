@@ -41,3 +41,33 @@ class TestCLI:
                 assert analyzer is not None
             finally:
                 os.unlink(tmp.name)
+
+    def test_select_analyzer_nvidia(self) -> None:
+        """Test selecting NVIDIA analyzer."""
+        import os
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(b"test data")
+            tmp.flush()
+
+            try:
+                analyzer = select_analyzer(tmp.name, "nvidia", False)
+                assert analyzer is not None
+            finally:
+                os.unlink(tmp.name)
+
+    def test_select_analyzer_auto_detect(self) -> None:
+        """Test auto-detection of analyzer."""
+        import os
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(b"test data")
+            tmp.flush()
+
+            try:
+                analyzer = select_analyzer(tmp.name, "auto", False)
+                assert analyzer is not None  # Should fall back to Qualcomm
+            finally:
+                os.unlink(tmp.name)

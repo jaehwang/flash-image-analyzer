@@ -81,6 +81,38 @@ Flash image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 - Rootfs (0x90000000): 1MB+
 ```
 
+#### NVIDIA Tegra 플랫폼
+```
+특징:
+- BCT (Boot Configuration Table) 기반 부팅
+- GPT (GUID Partition Table) 파티션 구조
+- 다단계 부트로더 (MB1, MB2/TegraBoot, CBoot)
+- A/B 슬롯 지원으로 안전한 업데이트
+- L4T (Linux for Tegra) 지원
+
+메모리 레이아웃:
+0x00000000: BCT (Boot Configuration Table)
+0x00000800: GPT Header
+0x00001000: GPT Partition Entries
+0x00008800: MB1 (1st stage bootloader)
+0x00018800: MB2/TegraBoot (2nd stage bootloader)
+0x00028800: CBoot (CPU bootloader, U-Boot 기반)
+0x00038800: TOS (Trusted OS, TrustZone)
+0x00048800: BPMP (Boot and Power Management Processor)
+0x00058800: Kernel/Boot 파티션
+0x00800000: Root 파일시스템
+
+지원 파일시스템: ext4, F2FS, SquashFS
+
+테스트 샘플 구조:
+- BCT: 4KB 부트 설정 테이블
+- GPT: 표준 파티션 테이블
+- MB1: 64KB 1차 부트로더
+- MB2: 64KB 2차 부트로더 (TegraBoot)
+- CBoot: 64KB CPU 부트로더
+- Rootfs: 1MB+ ext4 파일시스템
+```
+
 #### Broadcom 플랫폼
 ```
 특징:
@@ -140,23 +172,39 @@ Flash image는 여러 개의 펌웨어 구성 요소를 하나의 바이너리 �
 현재 Qualcomm 플랫폼을 시작으로, 다음 순서로 지원을 확장할 예정입니다:
 
 1. **✅ Qualcomm** (현재 지원) - MBN 형식, TrustZone 구조
-2. **📋 Broadcom** - CFE, TRX 헤더 형식
-3. **📋 MediaTek** - Preloader, Android 파티션
-4. **📋 Marvell** - U-Boot, 네트워크 프로세서
-5. **📋 기타 플랫폼** - 사용자 요구에 따라 추가
+2. **✅ NVIDIA Tegra** (현재 지원) - BCT, GPT 파티션, Tegra 부트로더
+3. **📋 Broadcom** - CFE, TRX 헤더 형식
+4. **📋 MediaTek** - Preloader, Android 파티션
+5. **📋 Marvell** - U-Boot, 네트워크 프로세서
+6. **📋 기타 플랫폼** - 사용자 요구에 따라 추가
 
-## Qualcomm Flash Image 분석 도구
+## Flash Image 분석 도구
 
 ### 개요
 
-Qualcomm 플랫폼용 flash image를 분석하는 CLI 도구입니다. MBN (Multi-Boot Image) 형식을 지원하며, 파티션 구조 분석, 파일시스템 검사, 무결성 검증 기능을 제공합니다.
+임베디드 시스템 flash image를 분석하는 CLI 도구입니다. 다음 플랫폼을 지원합니다:
+
+- **Qualcomm**: MBN (Multi-Boot Image) 형식, TrustZone 구조
+- **NVIDIA Tegra**: BCT, GPT 파티션, 다단계 부트로더
+
+파티션 구조 분석, 파일시스템 검사, 무결성 검증 기능을 제공합니다.
 
 ### 주요 기능
 
 #### 핵심 분석 기능
 
+**Qualcomm 플랫폼**:
 - **MBN 헤더 파싱**: Qualcomm의 Multi-Boot Image 형식 분석
 - **ELF 형식 지원**: ELF 기반 flash image 처리
+- **TrustZone 인식**: 보안 파티션 및 로드 주소 분석
+
+**NVIDIA Tegra 플랫폼**:
+- **BCT 분석**: Boot Configuration Table 파싱
+- **GPT 파티션 테이블**: 표준 GUID 파티션 테이블 지원
+- **Tegra 부트로더 인식**: MB1, MB2, CBoot 자동 감지
+
+**공통 기능**:
+- **자동 플랫폼 감지**: 파일 시그니처 기반 플랫폼 식별
 - **자동 파티션 감지**: 부트로더, 커널, 파일시스템 자동 식별
 - **메모리 레이아웃 검증**: 오버랩 및 정렬 문제 검사
 - **무결성 검증**: CRC32 체크섬 및 크기 검증
@@ -175,10 +223,21 @@ Qualcomm 플랫폼용 flash image를 분석하는 CLI 도구입니다. MBN (Mult
 
 #### 파티션 타입 감지
 
-다음 기준으로 파티션 타입을 자동 식별합니다:
-- **로드 주소**: Qualcomm 메모리 맵 기반
+플랫폼별로 다음 기준으로 파티션 타입을 자동 식별합니다:
+
+**Qualcomm**:
+- **로드 주소**: Qualcomm 메모리 맵 기반 (SBL, TZ, RPM, APPSBL 등)
+- **MBN 헤더**: Multi-Boot Image 헤더 분석
 - **내용 분석**: 매직 넘버, 시그니처 확인
+
+**NVIDIA Tegra**:
+- **파티션 이름**: GPT 파티션 이름 기반 (mb1, mb2, cboot, bpmp 등)
+- **BCT 감지**: Boot Configuration Table 시그니처
+- **GPT 구조**: 표준 GUID 파티션 테이블 분석
+
+**공통**:
 - **크기 패턴**: 일반적인 레이아웃 패턴
+- **파일시스템 감지**: 자동 파일시스템 타입 인식
 
 ### 설치 방법
 
@@ -255,39 +314,57 @@ uv run python -m flash_img.cli --extract system_0:extracted_system.bin firmware.
 # JSON 출력 형식
 uv run python -m flash_img.cli --output-format json firmware.bin
 
-# 플랫폼 지정
+# 플랫폼 지정 (자동 감지 실패 시)
 uv run python -m flash_img.cli --platform qualcomm firmware.bin
+uv run python -m flash_img.cli --platform nvidia tegra_firmware.bin
+
+# CSV 출력 형식
+uv run python -m flash_img.cli --output-format csv firmware.bin
 ```
 
 #### 테스트용 샘플 생성 및 분석
 
-테스트를 위한 Qualcomm 명세 준수 flash image를 생성하고 분석할 수 있습니다:
+테스트를 위한 플랫폼별 flash image를 생성하고 분석할 수 있습니다:
 
 ```bash
-# 1. Qualcomm flash image 샘플 생성 (MBN 파티션 구조, SquashFS rootfs 포함)
-uv run python scripts/create_simple_sample.py
+# 1. 두 플랫폼 모두 샘플 생성
+make sample
+
+# 또는 개별 플랫폼 샘플 생성
+uv run python scripts/create_simple_sample.py --platform qualcomm --verbose
+uv run python scripts/create_simple_sample.py --platform nvidia --verbose
 
 # 2. 생성된 flash image 분석
-uv run python -m flash_img.cli samples/simple_flash.bin
-
-# 또는 Makefile로 분석 (샘플 생성 후)
 make example
+
+# 또는 개별 분석
+uv run flash_img samples/qualcomm_flash.bin
+uv run flash_img samples/nvidia_flash.bin
+
+# 커스텀 출력 경로로 생성
+uv run python scripts/create_simple_sample.py --platform nvidia -o /tmp/my_tegra.bin
 ```
 
-생성되는 flash image는 다음과 같은 구조를 가집니다:
+#### 생성되는 샘플 구조
+
+**Qualcomm 샘플 (qualcomm_flash.bin)**:
 - **SBL 파티션**: Secondary Boot Loader (4KB, 0x40000000)
 - **APPSBL 파티션**: Application SBL (2KB, 0x8F600000)
 - **Rootfs 파티션**: SquashFS 형식 (1MB+, README.md 파일 포함)
+- **형식**: MBN (Multi-Boot Image) 헤더 구조 사용
 
-이 스크립트는 Qualcomm 명세에 맞는 **MBN (Multi-Boot Image) 형식**을 사용하여:
-- 각 파티션마다 40바이트 MBN 헤더 구조 생성
-- Qualcomm 메모리 맵에 따른 로드 주소 할당
-- SquashFS 압축 파일시스템으로 rootfs 구현
-- 분석 도구가 인식할 수 있는 완전한 flash image 생성
+**NVIDIA 샘플 (nvidia_flash.bin)**:
+- **BCT**: Boot Configuration Table (4KB)
+- **GPT**: 파티션 테이블 헤더
+- **MB1**: 1차 부트로더 (64KB)
+- **MB2**: 2차 부트로더/TegraBoot (64KB)
+- **CBoot**: CPU 부트로더 (64KB)
+- **Rootfs**: ext4 파일시스템 (1MB+)
+- **형식**: BCT + GPT 파티션 구조 사용
 
 ### 출력 예시
 
-#### 기본 파티션 정보
+#### Qualcomm 플랫폼 분석 결과
 ```
 Found 3 partitions:
 ------------------------------------------------------------------------------------------------------------------------
@@ -301,6 +378,24 @@ Total partition size: 1.0MB
 Total filesystem used: 1.0KB
 File size: 1.0MB
 Unused space: 5.9KB
+```
+
+#### NVIDIA Tegra 플랫폼 분석 결과
+```
+Found 5 partitions:
+------------------------------------------------------------------------------------------------------------------------
+Name            Type       Offset       Size         Load Addr    FS Type    FS Size      Used
+------------------------------------------------------------------------------------------------------------------------
+BCT             unknown    0x00000000   16.0KB       0x00000000   N/A        N/A        N/A
+mb1             sbl        0x00008800   64.0KB       0x00000000   N/A        N/A        N/A
+mb2             appsbl     0x00018800   64.0KB       0x00000000   N/A        N/A        N/A
+cboot           appsbl     0x00028800   64.0KB       0x00000000   N/A        N/A        N/A
+rootfs          unknown    0x00038800   1.0MB        0x00000000   ext4       1.0MB      512.0KB
+------------------------------------------------------------------------------------------------------------------------
+Total partition size: 1.2MB
+Total filesystem used: 512.0KB
+File size: 1.2MB
+Unused space: 16.0KB
 ```
 
 #### 파일시스템 상세 정보
@@ -360,7 +455,7 @@ FS 크기: 58MB        (파일시스템 오버헤드 제외 후 사용 가능 �
 
 ```bash
 # 파일시스템 파티션 추출
-python flash_img firmware.bin --extract system_0:system.bin
+uv run python -m flash_img.cli --extract system_0:system.bin firmware.bin
 
 # 파일시스템 타입 확인
 file system.bin
@@ -380,7 +475,7 @@ sudo mount -t ext4 -o loop system.bin /mnt/extracted
 
 ```bash
 # 부트로더 추출
-python flash_img firmware.bin --extract sbl_0:bootloader.bin
+uv run python -m flash_img.cli --extract sbl_0:bootloader.bin firmware.bin
 
 # 헥스 에디터나 디스어셈블러로 분석
 hexdump -C bootloader.bin | head
@@ -430,10 +525,12 @@ Warning: Error analyzing filesystem at offset 0x00800000: ...
 - **배치 처리**: 여러 파일 동시 분석
 
 #### 플랫폼 확장
-다음 플랫폼 지원을 위한 개발이 진행 중입니다:
-- **Broadcom**: CFE 부트로더, TRX 헤더 지원
-- **MediaTek**: Preloader, Android 파티션 구조
-- **Marvell**: 네트워크 프로세서 특화 기능
+현재 Qualcomm과 NVIDIA Tegra를 지원하며, 다음 플랫폼 지원을 위한 개발이 진행 중입니다:
+- **✅ Qualcomm**: MBN 형식, TrustZone 구조 (완료)
+- **✅ NVIDIA Tegra**: BCT, GPT 파티션, 다단계 부트로더 (완료)
+- **📋 Broadcom**: CFE 부트로더, TRX 헤더 지원
+- **📋 MediaTek**: Preloader, Android 파티션 구조
+- **📋 Marvell**: 네트워크 프로세서 특화 기능
 
 ### 기여 방법
 
@@ -448,17 +545,40 @@ Warning: Error analyzing filesystem at offset 0x00800000: ...
 
 #### 플랫폼 확장
 
-다른 플랫폼 지원을 위해 도구를 확장할 수 있습니다:
+현재 Qualcomm과 NVIDIA Tegra 플랫폼을 지원하며, 다른 플랫폼 지원을 위해 도구를 확장할 수 있습니다:
+
+**기존 지원 플랫폼**:
+- **Qualcomm**: `src/flash_img/platforms/qualcomm.py`
+- **NVIDIA Tegra**: `src/flash_img/platforms/nvidia.py`
+
+**추가 가능 플랫폼**:
 - Broadcom CFE 형식
 - MediaTek 형식
+- Marvell U-Boot 형식
 - 사용자 정의 벤더 형식
+
+**새 플랫폼 추가 방법**:
+1. `src/flash_img/platforms/` 에 새 플랫폼 분석기 생성
+2. `ImageAnalyzer` 기본 클래스 상속
+3. `can_handle()` 및 `analyze()` 메서드 구현
+4. `src/flash_img/cli.py`에 플랫폼 추가
+5. 테스트 케이스 작성
 
 ### 참고 자료
 
+#### 플랫폼별 문서
 - [Qualcomm Boot Flow 문서](https://developer.qualcomm.com)
+- [NVIDIA Jetson Linux Developer Guide](https://docs.nvidia.com/jetson/l4t/)
+- [NVIDIA Tegra Boot Flow](https://http.download.nvidia.com/tegra-public-appnotes/tegra-boot-flow.html)
+- [NVIDIA Flashing Tools and Protocols](https://http.download.nvidia.com/tegra-public-appnotes/flashing-tools.html)
+
+#### 기술 문서
 - [MTD (Memory Technology Device) 서브시스템](https://www.linux-mtd.infradead.org/)
 - [U-Boot 문서](https://docs.u-boot.org/)
 - [SquashFS 형식 명세](https://github.com/plougher/squashfs-tools)
+- [GPT (GUID Partition Table) 명세](https://en.wikipedia.org/wiki/GUID_Partition_Table)
 
-- [Binwarlk: Firmware Analysis Tool](https://github.com/ReFirmLabs/binwalk)
+#### 관련 도구
+- [Binwalk: Firmware Analysis Tool](https://github.com/ReFirmLabs/binwalk)
 - [Qualcomm Emergency Download(EDL) Mode Hacking](https://github.com/bkerler/edl)
+- [NVIDIA TegrarcM: Tegra Recovery Mode Tool](https://github.com/NVIDIA/tegrarcm)

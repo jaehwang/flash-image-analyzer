@@ -1,4 +1,4 @@
-"""Core data models for gang image analysis."""
+"""Core data models for flash image analysis."""
 
 from dataclasses import dataclass
 from enum import Enum
@@ -6,7 +6,7 @@ from typing import Optional
 
 
 class ImageType(Enum):
-    """Types of images found in gang images."""
+    """Types of images found in flash images."""
 
     SBL = "sbl"
     TZ = "tz"
@@ -34,7 +34,7 @@ class FilesystemInfo:
 
 @dataclass
 class PartitionInfo:
-    """Information about a partition in a gang image."""
+    """Information about a partition in a flash image."""
 
     name: str
     offset: int
@@ -48,7 +48,7 @@ class PartitionInfo:
 
 @dataclass
 class AnalysisResult:
-    """Complete analysis result for a gang image."""
+    """Complete analysis result for a flash image."""
 
     filename: str
     file_size: int

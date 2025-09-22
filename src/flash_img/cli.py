@@ -4,8 +4,10 @@ import argparse
 import sys
 from pathlib import Path
 
+from .core.analyzer import ImageAnalyzer
 from .core.exceptions import FlashImgError
 from .core.models import AnalysisResult
+from .platforms.nvidia import NVIDIAAnalyzer
 from .platforms.qualcomm import QualcommAnalyzer
 from .utils.formatting import format_output
 
@@ -36,7 +38,7 @@ def create_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "--platform",
-        choices=["qualcomm", "broadcom", "mediatek", "marvell", "auto"],
+        choices=["qualcomm", "nvidia", "broadcom", "mediatek", "marvell", "auto"],
         default="auto",
         help="Force specific platform analyzer (default: auto-detect)",
     )
@@ -53,30 +55,36 @@ def create_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool) -> QualcommAnalyzer:
+def select_analyzer(image_path: str, platform: str, skip_fs_analysis: bool) -> ImageAnalyzer:
     """Select appropriate analyzer for the image."""
     if platform != "auto":
         # Force specific platform
         if platform == "qualcomm":
             return QualcommAnalyzer(image_path, skip_fs_analysis)
+        elif platform == "nvidia":
+            return NVIDIAAnalyzer(image_path, skip_fs_analysis)
         else:
             raise FlashImgError(f"Platform '{platform}' not yet implemented")
 
     # Auto-detect platform
+    analyzers = [
+        QualcommAnalyzer(image_path, skip_fs_analysis),
+        NVIDIAAnalyzer(image_path, skip_fs_analysis),
+    ]
+
     try:
         with open(image_path, "rb") as f:
-            # Try Qualcomm first
-            analyzer = QualcommAnalyzer(image_path, skip_fs_analysis)
-            if analyzer.can_handle(f):
-                return analyzer
+            for analyzer in analyzers:
+                if analyzer.can_handle(f):
+                    return analyzer
     except Exception:
         pass
 
-    # If no analyzer can handle it, default to Qualcomm for now
+    # If no analyzer can handle it, default to Qualcomm for backward compatibility
     return QualcommAnalyzer(image_path, skip_fs_analysis)
 
 
-def handle_extraction(analyzer: QualcommAnalyzer, extract_spec: str) -> None:
+def handle_extraction(analyzer: ImageAnalyzer, extract_spec: str) -> None:
     """Handle partition extraction."""
     try:
         partition_name, output_file = extract_spec.split(":", 1)

@@ -1,4 +1,4 @@
-"""Base gang image analyzer class."""
+"""Base image analyzer class."""
 
 import os
 from abc import ABC, abstractmethod
@@ -8,8 +8,8 @@ from .exceptions import AnalysisError
 from .models import AnalysisResult
 
 
-class GangImageAnalyzer(ABC):
-    """Base class for gang image analyzers."""
+class ImageAnalyzer(ABC):
+    """Base class for image analyzers."""
 
     def __init__(self, filename: str, skip_fs_analysis: bool = False):
         self.filename = filename
@@ -22,7 +22,7 @@ class GangImageAnalyzer(ABC):
 
     @abstractmethod
     def analyze(self) -> AnalysisResult:
-        """Analyze the gang image and return results."""
+        """Analyze the image and return results."""
         pass
 
     @abstractmethod

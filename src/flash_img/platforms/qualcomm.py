@@ -1,11 +1,11 @@
-"""Qualcomm platform-specific gang image analyzer."""
+"""Qualcomm platform-specific flash image analyzer."""
 
 import struct
 from dataclasses import dataclass
 from typing import BinaryIO, Optional
 
 from ..analyzers.filesystem import FilesystemAnalyzer
-from ..core.analyzer import GangImageAnalyzer
+from ..core.analyzer import ImageAnalyzer
 from ..core.exceptions import AnalysisError, UnsupportedFormatError
 from ..core.models import AnalysisResult, ImageType, PartitionInfo
 
@@ -26,18 +26,18 @@ class MBNHeader:
     cert_chain_size: int
 
 
-class QualcommAnalyzer(GangImageAnalyzer):
-    """Analyzer for Qualcomm gang images."""
+class QualcommAnalyzer(ImageAnalyzer):
+    """Analyzer for Qualcomm flash images."""
 
     def can_handle(self, f: BinaryIO) -> bool:
-        """Check if this is a Qualcomm gang image."""
+        """Check if this is a Qualcomm flash image."""
         f.seek(0)
         magic = f.read(4)
 
-        # Common Qualcomm gang image magic numbers
+        # Common Qualcomm flash image magic numbers
         known_magics = [
             b"\x7f\x45\x4c\x46",  # ELF
-            b"GANG",  # Custom gang header
+            b"GANG",  # Custom flash header
             b"QCOM",  # Qualcomm header
             b"\x00\x00\x00\x00",  # Some images start with zeros
         ]
@@ -45,7 +45,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
         return magic in known_magics
 
     def analyze(self) -> AnalysisResult:
-        """Analyze the Qualcomm gang image."""
+        """Analyze the Qualcomm flash image."""
         partitions = []
         warnings = []
         validation_errors = []
@@ -53,14 +53,14 @@ class QualcommAnalyzer(GangImageAnalyzer):
         try:
             with open(self.filename, "rb") as f:
                 if not self.can_handle(f):
-                    raise UnsupportedFormatError("Not a recognized Qualcomm gang image format")
+                    raise UnsupportedFormatError("Not a recognized Qualcomm flash image format")
 
-                # Try to detect gang image format
-                if self._detect_gang_format(f):
-                    partitions = self._parse_gang_image(f)
+                # Try to detect flash image format
+                if self._detect_flash_format(f):
+                    partitions = self._parse_flash_image(f)
                 else:
                     # Fallback to scanning for MBN headers
-                    warnings.append("Gang header not found, scanning for individual MBN images")
+                    warnings.append("Flash header not found, scanning for individual MBN images")
                     partitions = self._scan_mbn_images(f)
 
             # Calculate totals
@@ -71,7 +71,7 @@ class QualcommAnalyzer(GangImageAnalyzer):
             validation_errors.extend(self._validate_partitions(partitions))
 
         except Exception as e:
-            raise AnalysisError(f"Error analyzing Qualcomm gang image: {e}") from e
+            raise AnalysisError(f"Error analyzing Qualcomm flash image: {e}") from e
 
         return AnalysisResult(
             filename=self.filename,
@@ -83,31 +83,31 @@ class QualcommAnalyzer(GangImageAnalyzer):
             warnings=warnings,
         )
 
-    def _detect_gang_format(self, f: BinaryIO) -> bool:
-        """Detect if this is a proper gang image with header."""
+    def _detect_flash_format(self, f: BinaryIO) -> bool:
+        """Detect if this is a proper flash image with header."""
         f.seek(0)
         magic = f.read(4)
 
-        # Common Qualcomm gang image magic numbers
+        # Common Qualcomm flash image magic numbers
         known_magics = [
             b"\x7f\x45\x4c\x46",  # ELF
-            b"GANG",  # Custom gang header
+            b"GANG",  # Custom flash header
             b"QCOM",  # Qualcomm header
             b"\x00\x00\x00\x00",  # Some images start with zeros
         ]
 
         return magic in known_magics
 
-    def _parse_gang_image(self, f: BinaryIO) -> list[PartitionInfo]:
-        """Parse gang image with proper header."""
+    def _parse_flash_image(self, f: BinaryIO) -> list[PartitionInfo]:
+        """Parse flash image with proper header."""
         f.seek(0)
 
         # Try to parse as ELF format first
         if self._try_parse_elf(f):
             return self.partitions
 
-        # Try custom gang format
-        return self._parse_custom_gang(f)
+        # Try custom flash format
+        return self._parse_custom_flash(f)
 
     def _try_parse_elf(self, f: BinaryIO) -> bool:
         """Try to parse as ELF format."""
@@ -154,14 +154,14 @@ class QualcommAnalyzer(GangImageAnalyzer):
         self.partitions = partitions
         return True
 
-    def _parse_custom_gang(self, f: BinaryIO) -> list[PartitionInfo]:
-        """Parse custom gang format."""
+    def _parse_custom_flash(self, f: BinaryIO) -> list[PartitionInfo]:
+        """Parse custom flash format."""
         # This would be implementation specific
         # For now, fall back to MBN scanning
         return self._scan_mbn_images(f)
 
     def _scan_mbn_images(self, f: BinaryIO) -> list[PartitionInfo]:
-        """Scan for MBN images in the gang image."""
+        """Scan for MBN images in the flash image."""
         f.seek(0)
         offset = 0
         partition_count = 0

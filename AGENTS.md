@@ -33,6 +33,7 @@ tests/              # Test suite including integration tests
 ### Current Platform Support
 
 - ✅ **Qualcomm**: MBN (Multi-Boot Image) format, TrustZone structure
+- ✅ **NVIDIA**: Tegra platform with BCT, GPT partitions, multi-stage bootloaders
 - 📋 **Planned**: Broadcom (CFE, TRX), MediaTek (Preloader), Marvell (U-Boot)
 
 ## Build System
@@ -62,8 +63,12 @@ This project uses modern Python tooling with `uv` as the primary package manager
 - `make test-cov` - Run tests with coverage reporting
 
 **Sample Generation and Analysis**:
-- `make sample` - Generate test flash image samples
-- `make example` - Run example analysis on generated samples
+- `make sample` - Generate test flash image samples for both platforms
+- `make sample-qualcomm` - Generate Qualcomm sample flash image
+- `make sample-nvidia` - Generate NVIDIA sample flash image
+- `make example` - Run example analysis on both platform samples
+- `make example-qualcomm` - Run example analysis on Qualcomm sample
+- `make example-nvidia` - Run example analysis on NVIDIA sample
 - `make example-help` - Show CLI help
 
 **Utilities**:
@@ -88,4 +93,4 @@ This project uses modern Python tooling with `uv` as the primary package manager
 2. Make code changes
 3. `make check-all` - Verify code quality
 4. `make test` - Run tests
-5. `make sample && make example` - Test with sample data
+5. `make sample && make example` - Test with sample data for both platforms

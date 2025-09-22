@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Create a very simple test sample."""
 
+import argparse
+import os
 import struct
+from typing import Optional
 
 
 def create_mbn_partition(data: bytes, load_addr: int, image_id: int = 1) -> bytes:
@@ -119,7 +122,165 @@ def create_rootfs_partition() -> bytes:
     return create_mbn_partition(rootfs_data, 0x90000000, 3)
 
 
-def create_flash_image() -> bytes:
+# NVIDIA Tegra sample generation functions
+
+
+def create_bct_partition() -> bytes:
+    """Create BCT (Boot Configuration Table) for NVIDIA Tegra."""
+    # AI-NOTE: BCT contains boot configuration parameters like memory timings, clock settings
+    # It's the first thing read by Tegra Boot ROM to configure SDRAM and other hardware
+    bct = bytearray()
+
+    # BCT signature
+    bct.extend(b"BCT\x00")
+
+    # BCT version and configuration data (simplified)
+    bct.extend(struct.pack("<I", 0x01000000))  # version
+    bct.extend(struct.pack("<I", 0))  # oem_data_size
+    bct.extend(struct.pack("<I", 0))  # customer_data_size
+    bct.extend(struct.pack("<I", 0))  # reserved
+
+    # Add fake SDRAM configuration
+    bct.extend(b"SDRAM_CONFIG" * 10)
+
+    # Pad to 4KB (typical BCT size)
+    while len(bct) < 4096:
+        bct.append(0)
+
+    return bytes(bct)
+
+
+def create_gpt_header() -> bytes:
+    """Create GPT header for NVIDIA Tegra image."""
+    # AI-NOTE: GPT (GUID Partition Table) is the standard partitioning scheme for Tegra
+    # It provides a more flexible and robust partitioning than MBR
+    gpt_header = bytearray(512)
+
+    # GPT signature
+    gpt_header[0:8] = b"EFI PART"
+
+    # GPT revision (1.0)
+    struct.pack_into("<I", gpt_header, 8, 0x00010000)
+
+    # Header size
+    struct.pack_into("<I", gpt_header, 12, 92)
+
+    # Header CRC32 (dummy)
+    struct.pack_into("<I", gpt_header, 16, 0x12345678)
+
+    # Current LBA (1)
+    struct.pack_into("<Q", gpt_header, 24, 1)
+
+    # Backup LBA
+    struct.pack_into("<Q", gpt_header, 32, 100)
+
+    # First usable LBA
+    struct.pack_into("<Q", gpt_header, 40, 34)
+
+    # Last usable LBA
+    struct.pack_into("<Q", gpt_header, 48, 99)
+
+    # Partition entry LBA (2)
+    struct.pack_into("<Q", gpt_header, 72, 2)
+
+    # Number of partition entries
+    struct.pack_into("<I", gpt_header, 80, 4)
+
+    # Partition entry size
+    struct.pack_into("<I", gpt_header, 84, 128)
+
+    return bytes(gpt_header)
+
+
+def create_gpt_partition_entry(
+    name: str, first_lba: int, last_lba: int, type_guid: Optional[bytes] = None
+) -> bytes:
+    """Create a GPT partition entry."""
+    entry = bytearray(128)
+
+    # Partition type GUID (generic if not specified)
+    if type_guid:
+        entry[0:16] = type_guid
+    else:
+        entry[0:16] = b"\x01\x02\x03\x04" * 4  # Dummy GUID
+
+    # Unique partition GUID
+    entry[16:32] = os.urandom(16)
+
+    # First and last LBA
+    struct.pack_into("<Q", entry, 32, first_lba)
+    struct.pack_into("<Q", entry, 40, last_lba)
+
+    # Attributes (none)
+    struct.pack_into("<Q", entry, 48, 0)
+
+    # Partition name (UTF-16LE)
+    name_utf16 = name.encode("utf-16le")
+    entry[56 : 56 + len(name_utf16)] = name_utf16
+
+    return bytes(entry)
+
+
+def create_tegra_bootloader(name: str, content: str) -> bytes:
+    """Create a Tegra bootloader partition."""
+    # AI-NOTE: Tegra bootloaders don't use MBN format like Qualcomm
+    # They're typically raw binary images with NVIDIA-specific headers
+    data = bytearray()
+
+    # Add NVIDIA signature
+    data.extend(b"NVDA")
+
+    # Version and size info
+    data.extend(struct.pack("<I", 0x01000000))  # version
+    data.extend(struct.pack("<I", len(content.encode())))  # content size
+    data.extend(struct.pack("<I", 0))  # reserved
+
+    # Add the actual content
+    data.extend(content.encode() * 100)  # Repeat content for size
+
+    # Pad to reasonable size (64KB)
+    while len(data) < 64 * 1024:
+        data.append(0)
+
+    return bytes(data)
+
+
+def create_tegra_filesystem() -> bytes:
+    """Create ext4 filesystem for Tegra rootfs."""
+    # AI-NOTE: Tegra typically uses ext4 for writable partitions like system/userdata
+    # SquashFS is used for read-only partitions like rootfs
+    data = bytearray()
+
+    # ext4 superblock (simplified)
+    # Pad to superblock location (1024 bytes from start)
+    data.extend(b"\x00" * 1024)
+
+    # ext4 magic number
+    data.extend(struct.pack("<H", 0xEF53))
+
+    # Basic superblock fields
+    data.extend(struct.pack("<I", 1000))  # s_inodes_count
+    data.extend(struct.pack("<I", 4000))  # s_blocks_count_lo
+    data.extend(struct.pack("<I", 400))  # s_r_blocks_count_lo
+    data.extend(struct.pack("<I", 3600))  # s_free_blocks_count_lo
+    data.extend(struct.pack("<I", 990))  # s_free_inodes_count
+    data.extend(struct.pack("<I", 1))  # s_first_data_block
+    data.extend(struct.pack("<I", 2))  # s_log_block_size (4KB blocks)
+
+    # Add fake file content
+    readme_content = (
+        b"# NVIDIA Tegra Root Filesystem\n\nThis is a test ext4 filesystem for Tegra.\n"
+    )
+    data.extend(readme_content)
+
+    # Pad to >1MB for filesystem analysis
+    while len(data) < 1024 * 1024 + 1024:  # 1MB + 1KB
+        data.append(0)
+
+    return bytes(data)
+
+
+def create_qualcomm_flash_image() -> bytes:
     """Create a Qualcomm flash image with proper MBN partitions."""
     flash_image = bytearray()
 
@@ -150,13 +311,137 @@ def create_flash_image() -> bytes:
     return bytes(flash_image)
 
 
+def create_nvidia_flash_image() -> bytes:
+    """Create an NVIDIA Tegra flash image with GPT partitions."""
+    flash_image = bytearray()
+
+    # AI-NOTE: Tegra flash layout typically starts with BCT, then GPT, then partitions
+    # BCT configures hardware, GPT defines partition layout
+
+    # Add BCT at the beginning
+    bct = create_bct_partition()
+    flash_image.extend(bct)
+
+    # Align to 512 bytes for GPT
+    while len(flash_image) % 512 != 0:
+        flash_image.append(0)
+
+    # Add MBR (protective, 512 bytes)
+    mbr = bytearray(512)
+    mbr[510:512] = b"\x55\xAA"  # Boot signature
+    flash_image.extend(mbr)
+
+    # Add GPT header
+    gpt_header = create_gpt_header()
+    flash_image.extend(gpt_header)
+
+    # Add GPT partition entries (4 partitions)
+    # MB1 bootloader
+    mb1_entry = create_gpt_partition_entry("mb1", 34, 161)  # 64KB
+    flash_image.extend(mb1_entry)
+
+    # MB2/TegraBoot
+    mb2_entry = create_gpt_partition_entry("mb2", 162, 289)  # 64KB
+    flash_image.extend(mb2_entry)
+
+    # CBoot
+    cboot_entry = create_gpt_partition_entry("cboot", 290, 417)  # 64KB
+    flash_image.extend(cboot_entry)
+
+    # Root filesystem
+    rootfs_entry = create_gpt_partition_entry("rootfs", 418, 2465)  # ~1MB
+    flash_image.extend(rootfs_entry)
+
+    # Pad partition table to LBA 34 (where actual partitions start)
+    while len(flash_image) < 34 * 512:
+        flash_image.append(0)
+
+    # Add actual partition data
+    # MB1 bootloader
+    mb1_data = create_tegra_bootloader("MB1", "MB1_BOOTLOADER_CODE")
+    flash_image.extend(mb1_data[: 128 * 512])  # Limit to allocated size
+
+    # MB2/TegraBoot
+    mb2_data = create_tegra_bootloader("MB2", "TEGRABOOT_CODE")
+    flash_image.extend(mb2_data[: 128 * 512])  # Limit to allocated size
+
+    # CBoot
+    cboot_data = create_tegra_bootloader("CBoot", "CBOOT_UBOOT_CODE")
+    flash_image.extend(cboot_data[: 128 * 512])  # Limit to allocated size
+
+    # Root filesystem
+    rootfs_data = create_tegra_filesystem()
+    flash_image.extend(rootfs_data[: 2048 * 512])  # Limit to allocated size
+
+    return bytes(flash_image)
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create command-line argument parser."""
+    parser = argparse.ArgumentParser(
+        description="Create test flash image samples for embedded systems analysis",
+        prog="create_simple_sample",
+    )
+
+    parser.add_argument(
+        "--platform",
+        choices=["qualcomm", "nvidia"],
+        default="qualcomm",
+        help="Target platform for flash image generation (default: qualcomm)",
+    )
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output file path (default: samples/{platform}_flash.bin)",
+    )
+
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
+
+    return parser
+
+
 def main() -> None:
-    flash_image = create_flash_image()
+    parser = create_parser()
+    args = parser.parse_args()
 
-    with open("samples/simple_flash.bin", "wb") as f:
-        f.write(flash_image)
+    # Determine output file
+    if args.output:
+        output_file = args.output
+    else:
+        # Create samples directory if it doesn't exist
+        os.makedirs("samples", exist_ok=True)
+        output_file = f"samples/{args.platform}_flash.bin"
 
-    print(f"Created flash image: {len(flash_image)} bytes")
+    # Generate flash image based on platform
+    if args.platform == "qualcomm":
+        if args.verbose:
+            print("Generating Qualcomm flash image with MBN partitions...")
+        flash_image = create_qualcomm_flash_image()
+    elif args.platform == "nvidia":
+        if args.verbose:
+            print("Generating NVIDIA Tegra flash image with GPT partitions...")
+        flash_image = create_nvidia_flash_image()
+    else:
+        print(f"Error: Unsupported platform '{args.platform}'")
+        return
+
+    # Write flash image to file
+    try:
+        with open(output_file, "wb") as f:
+            f.write(flash_image)
+
+        print(f"Created {args.platform} flash image: {output_file} ({len(flash_image):,} bytes)")
+
+        if args.verbose:
+            if args.platform == "qualcomm":
+                print("  Contains: SBL (bootloader) + APPSBL (bootloader) + SquashFS rootfs")
+            elif args.platform == "nvidia":
+                print("  Contains: BCT + GPT + MB1/MB2/CBoot (bootloaders) + ext4 rootfs")
+
+    except IOError as e:
+        print(f"Error writing to {output_file}: {e}")
 
 
 if __name__ == "__main__":
